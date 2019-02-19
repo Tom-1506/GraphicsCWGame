@@ -4,4 +4,4 @@ project(GraphicsCWGame)
 set(CMAKE_CXX_STANDARD 11)
 
 add_executable(GraphicsCWGame main.cpp)
-target_link_libraries(GraphicsCWGame -lglut -lGL -lGLU)
+target_link_libraries(GraphicsCWGame -lglut -lSOIL -lGL -lGLU)
