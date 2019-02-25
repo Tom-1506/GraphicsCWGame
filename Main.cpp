@@ -1,6 +1,6 @@
-#include "utility.h"
-#include "player.h"
-#include "scene.h"
+#include "Utility.h"
+#include "Player.h"
+#include "Scene.h"
 
 //Function definitions
 void update();
@@ -9,9 +9,10 @@ void reshape(int w, int h);
 void init();
 void keyfunction(unsigned char key, int x, int y);
 
+Scene scene = Scene();
+
 void update(){
-    sceneUpdate();
-    playerUpdate();
+    scene.sceneUpdate();
 }
 
 void display(void){
@@ -29,8 +30,7 @@ void display(void){
 void init(void){
     glClearColor(0, 0, 0, 0);
 
-    sceneInit();
-    playerInit();
+    scene.sceneInit();
 }
 
 void reshape(int w, int h){
@@ -54,7 +54,7 @@ void keyfunction(unsigned char key, int x, int y){
     }
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv){
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 

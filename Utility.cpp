@@ -1,4 +1,4 @@
-#include "utility.h"
+#include "Utility.h"
 
 bool drawCollisionBoxes = true;
 
