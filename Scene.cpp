@@ -40,7 +40,7 @@ void Scene::sceneUpdate(){
             drawQuad(groundX, groundY, groundWidth, groundHeight, 15, 1);
         glDisable(GL_TEXTURE_2D);
         glLineWidth(15);
-        glColor3f(1, 1, 1);
+        glColor3f(1, player.colourFlag, player.colourFlag);
         if(drawCollisionBoxes){
             drawBox(1920, 128, 3840, 256);
         }
@@ -48,9 +48,30 @@ void Scene::sceneUpdate(){
 
     player.playerUpdate();
 
+    sceneColliderUpdate();
+
     sceneCollisions();
 }
 
-void Scene::sceneCollisions(){
+void Scene::sceneColliderUpdate(){
+    groundMaxX = groundX + groundWidth/2;
+    groundMinX = groundX - groundWidth/2;
+    groundMaxY = groundY + groundHeight/2;
+    groundMinY = groundY - groundHeight/2;
+}
 
+void Scene::sceneCollisions(){
+    if(player.playerMinX < groundMaxX &&
+       player.playerMaxX > groundMinX &&
+       player.playerMinY < groundMaxY &&
+       player.playerMaxY > groundMinY)
+    {
+        player.colourFlag = 0;
+        player.pcVelocityY = 0;
+        player.grounded = true;
+    }
+    else{
+        player.colourFlag = 1;
+        player.grounded = false;
+    }
 }

@@ -10,7 +10,13 @@ class Scene{
 
         void sceneInit();
         void sceneUpdate();
+        void sceneColliderUpdate();
         void sceneCollisions();
+
+        float groundMaxX;
+        float groundMinX;
+        float groundMaxY;
+        float groundMinY;
 };
 
 #endif //GRAPHICSCWGAME_SCENE_H

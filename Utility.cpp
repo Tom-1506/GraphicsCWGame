@@ -1,6 +1,15 @@
 #include "Utility.h"
 
-bool drawCollisionBoxes = true;
+bool drawCollisionBoxes = false;
+int deltaTime;
+
+int oldTimeSinceStart = 0;
+
+void updateTime(){
+    int timeSinceStart = glutGet(GLUT_ELAPSED_TIME);
+    deltaTime = timeSinceStart - oldTimeSinceStart;
+    oldTimeSinceStart = timeSinceStart;
+}
 
 void drawBox(float centreX, float centreY, float w, float h){
     glBegin(GL_LINE_LOOP);

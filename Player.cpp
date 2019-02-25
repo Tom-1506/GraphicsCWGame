@@ -6,6 +6,8 @@ GLuint playerTex;
 bool* keyStates = new bool[256];
 bool* keySpecialStates = new bool[246];
 
+float pcSpeed = 1;
+
 Player::Player(GLfloat x, GLfloat y){
     pcX = x;
     pcY = y;
@@ -13,8 +15,14 @@ Player::Player(GLfloat x, GLfloat y){
     pcHeight = 256; //pc height
     pcTransX = 0; //pc X translate
     pcTransY = 0; //pc Y translate
-    pcSpeed = 10.0f; //pc movement speed
-    gravity = 14; //world gravity
+    pcVelocityX; //pc movement speed
+    pcVelocityY;
+    gravity = -0.001; //world gravity
+    playerMaxX = (pcX + pcTransX) + pcWidth/2;
+    playerMinX = (pcX + pcTransX) - pcWidth/2;
+    playerMaxY = (pcY + pcTransY) + pcHeight/2;
+    playerMinY = (pcY + pcTransY) - pcHeight/2;
+    colourFlag = 1;
 }
 
 void Player::playerInit(){
@@ -37,24 +45,53 @@ void Player::playerUpdate(){
             drawQuad(pcX, pcY, pcWidth, pcHeight, 1, 1);
         glDisable(GL_TEXTURE_2D);
         glLineWidth(15);
-        glColor3f(1, 1, 1);
+        glColor3f(1, colourFlag, colourFlag);
         if(drawCollisionBoxes){
             drawBox(pcX, pcX, pcWidth, pcHeight);
         }
     glPopMatrix();
 
-    //pcTransY -= gravity;
+    playerColliderUpdate();
+
+    moveUpdate();
 
     controlUpdate();
 }
 
+void Player::playerColliderUpdate(){
+    playerMaxX = (pcX + pcTransX) + pcWidth/2;
+    playerMinX = (pcX + pcTransX) - pcWidth/2;
+    playerMaxY = (pcY + pcTransY) + pcHeight/2;
+    playerMinY = (pcY + pcTransY) - pcHeight/2;
+}
+
+void Player::moveUpdate(){
+    pcTransX += pcVelocityX * deltaTime;
+    pcTransY += pcVelocityY * deltaTime;
+    if(!grounded){
+        pcVelocityY += gravity * deltaTime;
+    }
+}
+
 void Player::controlUpdate(){
     //Movement Keys
+    if(!keySpecialStates[GLUT_KEY_LEFT]){
+        pcVelocityX = 0;
+    }
+    if(!keySpecialStates[GLUT_KEY_RIGHT]){
+        pcVelocityX = 0;
+    }
     if(keySpecialStates[GLUT_KEY_LEFT]){
-        pcTransX -= pcSpeed;
+        pcVelocityX = -pcSpeed;
     }
     if(keySpecialStates[GLUT_KEY_RIGHT]){
-        pcTransX += pcSpeed;
+        pcVelocityX = pcSpeed;
+    }
+    if(keySpecialStates[GLUT_KEY_UP]){
+        std::cout << "jump" << std::endl;
+        if(grounded){
+            pcVelocityY += 5;
+        }
     }
 }
 
@@ -66,10 +103,10 @@ void keyUp(unsigned char key, int x, int y){
     keyStates[key] = false;
 }
 
-void keySpecialPressed (int key, int x, int y){
+void keySpecialPressed(int key, int x, int y){
     keySpecialStates[key] = true;
 }
 
-void keySpecialUp (int key, int x, int y){
+void keySpecialUp(int key, int x, int y){
     keySpecialStates[key] = false;
 }

@@ -10,17 +10,26 @@ class Player{
 
         void playerInit();
         void playerUpdate();
+        void moveUpdate();
+        void playerColliderUpdate();
         void controlUpdate();
 
-        //Variable definitions
+        float colourFlag;
+        bool grounded;
+
         GLfloat pcX; //player character X position
         GLfloat pcY; //pc Y position
         GLfloat pcWidth; //pc width
         GLfloat pcHeight; //pc height
         GLfloat pcTransX; //pc X translate
         GLfloat pcTransY; //pc Y translate
-        float pcSpeed; //pc movement speed
+        float pcVelocityX; //pc movement speed
+        float pcVelocityY;
         float gravity; //world gravity
+        float playerMaxX;
+        float playerMinX;
+        float playerMaxY;
+        float playerMinY;
 };
 
 void keyPressed (unsigned char key, int x, int y);

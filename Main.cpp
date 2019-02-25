@@ -12,6 +12,7 @@ void keyfunction(unsigned char key, int x, int y);
 Scene scene = Scene();
 
 void update(){
+    updateTime();
     scene.sceneUpdate();
 }
 
