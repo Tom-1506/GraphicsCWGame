@@ -8,7 +8,6 @@ void display();
 void reshape(int w, int h);
 void init();
 void keyfunction(unsigned char key, int x, int y);
-void special(int key, int x, int y);
 
 void update(){
     sceneUpdate();
@@ -55,19 +54,6 @@ void keyfunction(unsigned char key, int x, int y){
     }
 }
 
-void special(int key, int w, int h){
-    /*switch(key){
-        case GLUT_KEY_LEFT:
-            pcTransX -= pcSpeed;
-            break;
-        case GLUT_KEY_RIGHT:
-            pcTransX += pcSpeed;
-            break;
-        default:
-            break;
-    }*/
-}
-
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
@@ -82,7 +68,6 @@ int main(int argc, char** argv) {
     init();
 
     glutKeyboardFunc(keyfunction);
-    glutSpecialFunc(special);
 
     glutMainLoop();
 }

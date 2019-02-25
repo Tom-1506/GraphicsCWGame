@@ -1,6 +1,6 @@
 #include "utility.h"
 
-/*bool drawCollisionBoxes = true;*/
+bool drawCollisionBoxes = true;
 
 void drawBox(float centreX, float centreY, float w, float h){
     glBegin(GL_LINE_LOOP);

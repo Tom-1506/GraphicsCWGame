@@ -3,8 +3,6 @@
 GLuint ground; //ground texture
 GLuint background; //background texture
 
-/*bool drawCollisionBoxes = true;*/
-
 void sceneInit(){
     ground = loadPNG((char*)"textures/magic_dirt.png");
     background = loadPNG((char*)"textures/ray_background.png");
@@ -31,8 +29,8 @@ void sceneUpdate(){
         glDisable(GL_TEXTURE_2D);
         glLineWidth(15);
         glColor3f(1, 1, 1);
-        //if(drawCollisionBoxes){
+        if(drawCollisionBoxes){
             drawBox(1920, 128, 3840, 256);
-        //}
+        }
     glPopMatrix();
 }
