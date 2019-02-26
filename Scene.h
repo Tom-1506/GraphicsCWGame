@@ -19,4 +19,6 @@ class Scene{
         float groundMinY;
 };
 
+void renderPlatform(float centreX, float centreY, float w, float h, int texRepeatX, int texRepeatY);
+
 #endif //GRAPHICSCWGAME_SCENE_H

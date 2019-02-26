@@ -46,11 +46,29 @@ void Scene::sceneUpdate(){
         }
     glPopMatrix();
 
+    renderPlatform(128, 640, 256, 256, 1, 1);
+
     player.playerUpdate();
 
     sceneColliderUpdate();
 
     sceneCollisions();
+}
+
+void renderPlatform(float centreX, float centreY, float w, float h, int texRepeatX, int texRepeatY){
+    glPushMatrix();
+        glEnable(GL_TEXTURE_2D);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBindTexture(GL_TEXTURE_2D, ground);
+            glColor3f(0, 0, 0);
+            drawQuad(centreX, centreY, w, h, texRepeatX, texRepeatY);
+        glDisable(GL_TEXTURE_2D);
+        glLineWidth(15);
+        glColor3f(1, player.colourFlag, player.colourFlag);
+        if(drawCollisionBoxes){
+            drawBox(centreX, centreY, w, h);
+        }
+    glPopMatrix();
 }
 
 void Scene::sceneColliderUpdate(){
@@ -67,6 +85,7 @@ void Scene::sceneCollisions(){
        player.playerMaxY > groundMinY)
     {
         player.colourFlag = 0;
+        player.pcY = groundMaxY + player.pcHeight/2;
         player.pcVelocityY = 0;
         player.grounded = true;
     }

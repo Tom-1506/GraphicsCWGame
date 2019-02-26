@@ -21,11 +21,9 @@ class Player{
         GLfloat pcY; //pc Y position
         GLfloat pcWidth; //pc width
         GLfloat pcHeight; //pc height
-        GLfloat pcTransX; //pc X translate
-        GLfloat pcTransY; //pc Y translate
         float pcVelocityX; //pc movement speed
         float pcVelocityY;
-        float gravity; //world gravity
+        double gravity; //world gravity
         float playerMaxX;
         float playerMinX;
         float playerMaxY;
