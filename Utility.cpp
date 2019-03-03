@@ -1,6 +1,6 @@
 #include "Utility.h"
 
-bool drawCollisionBoxes = false;
+bool drawCollisionBoxes = true;
 int deltaTime;
 
 int oldTimeSinceStart = 0;
@@ -11,21 +11,21 @@ void updateTime(){
     oldTimeSinceStart = timeSinceStart;
 }
 
-void drawBox(float centreX, float centreY, float w, float h){
+void drawBox(float posX, float posY, float w, float h){
     glBegin(GL_LINE_LOOP);
-            glVertex2f(centreX - w/2, centreY - h/2); //bottom left
-            glVertex2f(centreX - w/2, centreY + h/2); //top left
-            glVertex2f(centreX + w/2, centreY + h/2); //top right
-            glVertex2f(centreX + w/2, centreY - h/2); //bottom right
+            glVertex2f(posX,         posY); //bottom left
+            glVertex2f(posX,     posY + h); //top left
+            glVertex2f(posX + w, posY + h); //top right
+            glVertex2f(posX + w,     posY); //bottom right
     glEnd();
 }
 
-void drawQuad(float centreX, float centreY, float w, float h, int texRepeatX, int texRepeatY){
+void drawQuad(float posX, float posY, float w, float h, int texRepeatX, int texRepeatY){
     glBegin(GL_POLYGON);
-        glTexCoord2f(0,                   0); glVertex2f(centreX - w/2, centreY + h/2);
-        glTexCoord2f(0,          texRepeatY); glVertex2f(centreX - w/2, centreY - h/2);
-        glTexCoord2f(texRepeatX, texRepeatY); glVertex2f(centreX + w/2, centreY - h/2);
-        glTexCoord2f(texRepeatX,          0); glVertex2f(centreX + w/2, centreY + h/2);
+        glTexCoord2f(0,                   0); glVertex2f(posX,     posY + h);
+        glTexCoord2f(0,          texRepeatY); glVertex2f(posX,         posY);
+        glTexCoord2f(texRepeatX, texRepeatY); glVertex2f(posX + w,     posY);
+        glTexCoord2f(texRepeatX,          0); glVertex2f(posX + w, posY + h);
     glEnd();
 }
 

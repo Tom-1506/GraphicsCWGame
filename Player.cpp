@@ -6,7 +6,7 @@ GLuint playerTex;
 bool* keyStates = new bool[256];
 bool* keySpecialStates = new bool[246];
 
-float pcSpeed = 1;
+float pcSpeed = 6; // make 1 after testing
 float pcJumpHeight = 2;
 
 Player::Player(GLfloat x, GLfloat y){
@@ -17,10 +17,10 @@ Player::Player(GLfloat x, GLfloat y){
     pcVelocityX; //pc movement speed
     pcVelocityY;
     gravity = -0.004; //world gravity
-    playerMaxX = pcX + pcWidth/2;
-    playerMinX = pcX - pcWidth/2;
-    playerMaxY = pcY + pcHeight/2;
-    playerMinY = pcY - pcHeight/2;
+    playerMaxX = pcX + pcWidth;
+    playerMinX = pcX;
+    playerMaxY = pcY + pcHeight;
+    playerMinY = pcY;
     colourFlag = 1;
 }
 
@@ -58,21 +58,21 @@ void Player::playerUpdate(){
 }
 
 void Player::playerColliderUpdate(){
-    playerMaxX = pcX + pcWidth/2;
-    playerMinX = pcX - pcWidth/2;
-    playerMaxY = pcY + pcHeight/2;
-    playerMinY = pcY - pcHeight/2;
+    playerMaxX = pcX + pcWidth;
+    playerMinX = pcX;
+    playerMaxY = pcY + pcHeight;
+    playerMinY = pcY;
 }
 
 void Player::moveUpdate(){
     pcX += pcVelocityX * deltaTime;
     pcY += pcVelocityY * deltaTime;
-    if(!grounded){
+    /*if(!grounded){
         pcVelocityY += gravity * deltaTime;
-    }
+    }*/
 }
 
-void Player::controlUpdate(){
+/*void Player::controlUpdate(){
     //Movement Keys
     if(!keySpecialStates[GLUT_KEY_LEFT]){
         pcVelocityX = 0;
@@ -87,10 +87,25 @@ void Player::controlUpdate(){
         pcVelocityX = pcSpeed;
     }
     if(keySpecialStates[GLUT_KEY_UP]){
-        std::cout << "jump" << std::endl;
         if(grounded){
             pcVelocityY += pcJumpHeight;
         }
+    }
+}*/
+
+void Player::controlUpdate(){
+    //Movement Keys
+    if(keySpecialStates[GLUT_KEY_LEFT]){
+        pcX -= pcSpeed;
+    }
+    if(keySpecialStates[GLUT_KEY_RIGHT]){
+        pcX += pcSpeed;
+    }
+    if(keySpecialStates[GLUT_KEY_UP]){
+        pcY += pcSpeed;
+    }
+    if(keySpecialStates[GLUT_KEY_DOWN]){
+        pcY -= pcSpeed;
     }
 }
 
