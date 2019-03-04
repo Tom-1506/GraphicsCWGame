@@ -6,7 +6,7 @@ GLuint playerTex;
 bool* keyStates = new bool[256];
 bool* keySpecialStates = new bool[246];
 
-float pcSpeed = 6; // make 1 after testing
+float pcSpeed = 1; // make 1 after testing
 float pcJumpHeight = 2;
 
 Player::Player(GLfloat x, GLfloat y){
@@ -34,6 +34,14 @@ void Player::playerInit(){
 }
 
 void Player::playerUpdate(){
+    moveUpdate();
+
+    playerColliderUpdate();
+
+    controlUpdate();
+}
+
+void Player::playerDisplay(){
     //Player character
     glPushMatrix();
         glEnable(GL_TEXTURE_2D);
@@ -49,12 +57,6 @@ void Player::playerUpdate(){
             drawBox(0, 0, pcWidth, pcHeight);
         }
     glPopMatrix();
-
-    playerColliderUpdate();
-
-    moveUpdate();
-
-    controlUpdate();
 }
 
 void Player::playerColliderUpdate(){
@@ -67,12 +69,10 @@ void Player::playerColliderUpdate(){
 void Player::moveUpdate(){
     pcX += pcVelocityX * deltaTime;
     pcY += pcVelocityY * deltaTime;
-    /*if(!grounded){
-        pcVelocityY += gravity * deltaTime;
-    }*/
+    pcVelocityY += gravity * deltaTime;
 }
 
-/*void Player::controlUpdate(){
+void Player::controlUpdate(){
     //Movement Keys
     if(!keySpecialStates[GLUT_KEY_LEFT]){
         pcVelocityX = 0;
@@ -90,10 +90,11 @@ void Player::moveUpdate(){
         if(grounded){
             pcVelocityY += pcJumpHeight;
         }
+        grounded = false;
     }
-}*/
+}
 
-void Player::controlUpdate(){
+/*void Player::controlUpdate(){
     //Movement Keys
     if(keySpecialStates[GLUT_KEY_LEFT]){
         pcX -= pcSpeed;
@@ -107,7 +108,7 @@ void Player::controlUpdate(){
     if(keySpecialStates[GLUT_KEY_DOWN]){
         pcY -= pcSpeed;
     }
-}
+}*/
 
 void keyPressed(unsigned char key, int x, int y){
     keyStates[key] = true;

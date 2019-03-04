@@ -1,6 +1,6 @@
 #include "Utility.h"
 
-bool drawCollisionBoxes = true;
+bool drawCollisionBoxes = false;
 int deltaTime;
 
 int oldTimeSinceStart = 0;

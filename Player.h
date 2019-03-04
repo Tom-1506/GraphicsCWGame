@@ -10,6 +10,7 @@ class Player{
 
         void playerInit();
         void playerUpdate();
+        void playerDisplay();
         void moveUpdate();
         void playerColliderUpdate();
         void controlUpdate();
