@@ -40,7 +40,7 @@ void reshape(int w, int h){
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    gluOrtho2D(0, w, 0, h);
+    gluOrtho2D(0,w,0,h);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();

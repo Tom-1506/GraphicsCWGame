@@ -36,4 +36,5 @@ void keyUp (unsigned char key, int x, int y);
 void keySpecialPressed (int key, int x, int y);
 void keySpecialUp (int key, int x, int y);
 
+
 #endif //GRAPHICSCWGAME_PLAYER_H

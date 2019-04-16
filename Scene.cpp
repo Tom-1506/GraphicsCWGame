@@ -1,20 +1,24 @@
 #include "Scene.h"
-#include "Player.h"
 #include "Platform.h"
 
 GLuint ground; //ground texture
 GLuint background; //background texture
 
+int worldWidth = 7680;
+int worldHeight = 4320;
+int blockDim = 128;
+
 Player player = Player(512, 512);
-Platform platforms[] = {Platform(0, 0, 3840, 128, 30, 1),
-                        Platform(0, 128, 128, 2176, 1, 17),
-                        Platform(3584, 128, 128, 2176, 1, 17),
-                        Platform(768, 400, 128, 128, 1, 1),
-                        Platform(1028, 768, 512, 128, 4, 1),
-                        Platform(2000, 128, 1024, 128, 8, 1),
-                        Platform(2500, 600, 256, 128, 2, 1),
-                        Platform(3100, 1000, 128, 128, 1, 1),
-                        Platform(2200, 1400, 640, 128, 5, 1)};
+
+Platform platforms[] = {Platform(0, 0, worldWidth, blockDim, worldWidth/blockDim, 1), //floor
+                        Platform(0, blockDim, blockDim, worldHeight, 1, worldHeight/blockDim), //left wall
+                        Platform(worldWidth-blockDim, blockDim, blockDim, worldHeight, 1, worldHeight/blockDim), //right wall
+                        Platform(768, 400, blockDim, blockDim, 1, 1),
+                        Platform(1028, 768, 4*blockDim, blockDim, 4, 1),
+                        Platform(2000, blockDim, 8*blockDim, blockDim, 8, 1),
+                        Platform(2500, 600, 2*blockDim, blockDim, 2, 1),
+                        Platform(3100, 1000, blockDim, blockDim, 1, 1),
+                        Platform(2200, 1400, 5*blockDim, blockDim, 5, 1)};
 int platformsSize = (sizeof(platforms)/sizeof(*platforms));
 
 float distTop;
@@ -35,7 +39,7 @@ void Scene::sceneInit(){
 }
 
 void Scene::sceneUpdate(){
-
+    glTranslatef(-player.pcX+1780, -player.pcY+952, 0);
 
     //background
     glPushMatrix();
@@ -43,7 +47,7 @@ void Scene::sceneUpdate(){
             glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBindTexture(GL_TEXTURE_2D, background);
             glColor3f(0, 1, 0);
-            drawQuad(0, 0, 3840, 2160, 15, 8);
+            drawQuad(-1920, -1080, 1.5*worldWidth, 2*worldHeight, 45, 34);
         glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 

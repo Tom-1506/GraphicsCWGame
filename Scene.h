@@ -1,4 +1,5 @@
 #include "Utility.h"
+#include "Player.h"
 
 #ifndef GRAPHICSCWGAME_SCENE_H
 #define GRAPHICSCWGAME_SCENE_H

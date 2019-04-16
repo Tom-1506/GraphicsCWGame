@@ -94,22 +94,6 @@ void Player::controlUpdate(){
     }
 }
 
-/*void Player::controlUpdate(){
-    //Movement Keys
-    if(keySpecialStates[GLUT_KEY_LEFT]){
-        pcX -= pcSpeed;
-    }
-    if(keySpecialStates[GLUT_KEY_RIGHT]){
-        pcX += pcSpeed;
-    }
-    if(keySpecialStates[GLUT_KEY_UP]){
-        pcY += pcSpeed;
-    }
-    if(keySpecialStates[GLUT_KEY_DOWN]){
-        pcY -= pcSpeed;
-    }
-}*/
-
 void keyPressed(unsigned char key, int x, int y){
     keyStates[key] = true;
 }
