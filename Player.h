@@ -10,11 +10,13 @@ class Player{
 
         void playerInit();
         void playerUpdate();
-        void playerDisplay();
+        void playerDisplay(GLuint playerTex);
         void moveUpdate();
         void playerColliderUpdate();
         void controlUpdate();
+        void featherGet();
 
+        int numFeathers;
         float colourFlag;
         bool grounded;
 

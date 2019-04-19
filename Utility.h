@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <vector>
 
 #ifndef GRAPHICSCWGAME_UTILITY_H
 #define GRAPHICSCWGAME_UTILITY_H

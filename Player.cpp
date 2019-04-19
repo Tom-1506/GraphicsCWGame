@@ -1,18 +1,15 @@
 #include "Player.h"
 
-//Textures
-GLuint playerTex;
-
 bool* keyStates = new bool[256];
 bool* keySpecialStates = new bool[246];
 
 float pcSpeed = 1; // make 1 after testing
-float pcJumpHeight = 2;
+float pcJumpHeight;
 
 Player::Player(GLfloat x, GLfloat y){
     pcX = x;
     pcY = y;
-    pcWidth = 160; //pc width
+    pcWidth = 156; //pc width
     pcHeight = 256; //pc height
     pcVelocityX; //pc movement speed
     pcVelocityY;
@@ -25,7 +22,7 @@ Player::Player(GLfloat x, GLfloat y){
 }
 
 void Player::playerInit(){
-    playerTex = loadPNG((char*)"textures/player.png");
+    pcJumpHeight = 2;
 
     glutKeyboardFunc(keyPressed);
     glutKeyboardUpFunc(keyUp);
@@ -41,7 +38,7 @@ void Player::playerUpdate(){
     controlUpdate();
 }
 
-void Player::playerDisplay(){
+void Player::playerDisplay(GLuint playerTex){
     //Player character
     glPushMatrix();
         glEnable(GL_TEXTURE_2D);
@@ -92,6 +89,11 @@ void Player::controlUpdate(){
         }
         grounded = false;
     }
+}
+
+void Player::featherGet(){
+    numFeathers++;
+    pcJumpHeight = 2+(0.5*numFeathers);
 }
 
 void keyPressed(unsigned char key, int x, int y){

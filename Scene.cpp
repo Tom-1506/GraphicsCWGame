@@ -1,7 +1,9 @@
 #include "Scene.h"
-#include "Platform.h"
 
+GLuint playerTex; //player texture
+GLuint enemyTex; //enemy texture
 GLuint ground; //ground texture
+GLuint feather; //feather texture
 GLuint background; //background texture
 
 int worldWidth = 7680;
@@ -34,7 +36,16 @@ Scene::Scene(){
 
 void Scene::sceneInit(){
     player.playerInit();
+    loadFeathers();
+    loadEnemies();
+    for(Enemy e : enemies){
+        e.enemyInit();
+    }
+
+    playerTex = loadPNG((char*)"textures/player.png");
+    enemyTex = loadPNG((char*)"textures/enemy.png");
     ground = loadPNG((char*)"textures/girder.png");
+    feather = loadPNG((char*)"textures/feather.png");
     background = loadPNG((char*)"textures/grid_background.png");
 }
 
@@ -54,15 +65,25 @@ void Scene::sceneUpdate(){
     for(Platform p : platforms){
         p.platformUpdate();
     }
+    for(Enemy e : enemies){
+        e.enemyUpdate();
+    }
 
     player.playerUpdate();
-    sceneCollisions();
-    player.playerDisplay();
 
+    sceneCollisions();
+    enemySceneCollisions();
+    featherCollision();
+    player.playerDisplay(playerTex);
+
+    for(Enemy e : enemies){
+        e.enemyDisplay(enemyTex);
+    }
     renderPlatforms();
+    renderFeathers();
 }
 
-void renderPlatforms(){
+void Scene::renderPlatforms(){
     for(Platform p : platforms){
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -79,6 +100,41 @@ void renderPlatforms(){
                 drawBox(p.platX, p.platY, p.platWidth, p.platHeight);
             }
         glPopMatrix();
+    }
+}
+
+void Scene::renderFeathers(){
+    for(Feather f : feathers){
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                glBindTexture(GL_TEXTURE_2D, feather);
+                glColor3f(1, 0, 1);
+                drawQuad(f.fX, f.fY, f.fWidth, f.fHeight, 1, 1);
+            glDisable(GL_TEXTURE_2D);
+            glLineWidth(15);
+            glColor3f(1, player.colourFlag, player.colourFlag);
+            if(drawCollisionBoxes){
+                drawBox(f.fX, f.fY, f.fWidth, f.fHeight);
+            }
+        glPopMatrix();
+    }
+}
+
+void Scene::sceneCollisions(){
+    for(int i = 0; i < platformsSize; i++){
+        if(player.playerMinX < platforms[i].platMaxX &&
+           player.playerMaxX > platforms[i].platMinX &&
+           player.playerMinY < platforms[i].platMaxY &&
+           player.playerMaxY > platforms[i].platMinY)
+        {
+            sceneColliderLogic(i);
+        }
+        else{
+            player.colourFlag = 1;
+        }
     }
 }
 
@@ -134,14 +190,20 @@ void Scene::sceneColliderLogic(int p){
     }
 }
 
-void Scene::sceneCollisions(){
-    for(int i = 0; i < platformsSize; i++){
-        if(player.playerMinX < platforms[i].platMaxX &&
-           player.playerMaxX > platforms[i].platMinX &&
-           player.playerMinY < platforms[i].platMaxY &&
-           player.playerMaxY > platforms[i].platMinY)
+void Scene::loadFeathers(){
+    feathers.emplace_back(Feather(512, 800));
+    feathers.emplace_back(Feather(2160, 800));
+    feathers.emplace_back(Feather(3840, 800));
+}
+
+void Scene::featherCollision(){
+    for(int i = 0; i < feathers.size(); i++){
+        if(player.playerMinX < feathers[i].featherMaxX &&
+           player.playerMaxX > feathers[i].featherMinX &&
+           player.playerMinY < feathers[i].featherMaxY &&
+           player.playerMaxY > feathers[i].featherMinY)
         {
-            sceneColliderLogic(i);
+            featherColliderLogic(i);
         }
         else{
             player.colourFlag = 1;
@@ -149,23 +211,92 @@ void Scene::sceneCollisions(){
     }
 }
 
-/*
-void Scene::sceneCollisions(){
-    if(player.playerMinX < platforms[0].platMaxX &&
-       player.playerMaxX > platforms[0].platMinX &&
-       player.playerMinY < platforms[0].platMaxY &&
-       player.playerMaxY > platforms[0].platMinY)
-    {
-        sceneColliderLogic(0);
+void Scene::featherColliderLogic(int f){
+    player.colourFlag = 0;
+    player.featherGet();
+    feathers.erase(feathers.begin()+f);
+}
+
+void Scene::loadEnemies(){
+    enemies.emplace_back(Enemy(1700, 800));
+    enemies.emplace_back(Enemy(1200, 1200));
+}
+
+void Scene::enemySceneCollisions(){
+    for(int i = 0; i < enemies.size(); i++){
+        Enemy e = enemies[i];
+        for(int j = 0; j < platformsSize; j++){
+            if(e.enemyMinX < platforms[j].platMaxX &&
+               e.enemyMaxX > platforms[j].platMinX &&
+               e.enemyMinY < platforms[j].platMaxY &&
+               e.enemyMaxY > platforms[j].platMinY)
+            {
+                enemySceneColliderLogic(e, j);
+            }
+            else{
+                player.colourFlag = 1;
+            }
+        }
     }
-    else if(player.playerMinX < platforms[1].platMaxX &&
-            player.playerMaxX > platforms[1].platMinX &&
-            player.playerMinY < platforms[1].platMaxY &&
-            player.playerMaxY > platforms[1].platMinY)
-    {
-        sceneColliderLogic(1);
+
+}
+
+void Scene::enemySceneColliderLogic(Enemy e, int p){
+    e.colourFlag = 0;
+    int smallest = 0 ;
+
+    distTop = std::abs(e.enemyMinY - platforms[p].platMaxY);
+    distBot = std::abs(e.enemyMaxY - platforms[p].platMinY);
+    distRight = std::abs(e.enemyMinX - platforms[p].platMaxX);
+    distLeft = std::abs(e.enemyMaxX - platforms[p].platMinX);
+
+    //std::cout << "Top: " << distTop << " - Bottom: " << distBot << " - Right: " << distRight << " - Left: " << distLeft << std::endl;
+
+    dists[0] = distTop;
+    dists[1] = distBot;
+    dists[2] = distRight;
+    dists[3] = distLeft;
+
+    for(int i=1;  i < distsSize; i++){
+        if(dists[i] < dists[smallest]){
+            smallest = i;
+        }
     }
-    else{
-        player.colourFlag = 1;
+
+    //std::cout << "smallest: " << smallest << std::endl;
+
+    switch(smallest){
+        case 0:
+            //std::cout << "put on top" << std::endl;
+            e.eY = platforms[p].platMaxY;
+            e.eVelocityY = 0;
+            e.grounded = true;
+            break;
+        case 1:
+            //std::cout << "put on bot" << std::endl;
+            e.eY = platforms[p].platMinY - e.enemyHeight;
+            e.eVelocityY = 0;
+            e.grounded = false;
+            break;
+        case 2:
+            //std::cout << "put on right" << std::endl;
+            e.eX = platforms[p].platMaxX;
+            e.eVelocityX = 0;
+            break;
+        case 3:
+            //std::cout << "put on left" << std::endl;
+            e.eX = platforms[p].platMinX - e.enemyWidth;
+            e.eVelocityX = 0;
+            break;
+        default:
+            break;
     }
-}*/
+}
+
+void Scene::enemyCollision(){
+
+}
+
+void Scene::enemyColliderLogic(int e){
+
+}
