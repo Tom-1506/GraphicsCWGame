@@ -14,11 +14,14 @@ class Scene{
 
         std::vector<Feather> feathers;
         std::vector<Enemy*> enemies;
+        std::vector<Platform*> movingPlatforms;
 
         void sceneInit();
         void sceneUpdate();
         void sceneCollisions();
         void sceneColliderLogic(int p);
+        void movingSceneCollisions();
+        void movingSceneColliderLogic(int p);
 
         void loadFeathers();
         void featherCollision();
@@ -30,6 +33,7 @@ class Scene{
         void enemyCollision();
         void enemyColliderLogic(int e);
 
+        void loadMovingPlatforms();
         void renderPlatforms();
         void renderFeathers();
 };

@@ -16,7 +16,6 @@ class Enemy {
         void switchDirection();
 
         bool facingRight;
-        bool chasing;
         float colourFlag;
         bool grounded;
 

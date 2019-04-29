@@ -19,7 +19,6 @@ Enemy::Enemy(GLfloat x, GLfloat y){
 
 void Enemy::enemyInit(){
     facingRight = true;
-    chasing = false;
 }
 
 void Enemy::enemyUpdate(){

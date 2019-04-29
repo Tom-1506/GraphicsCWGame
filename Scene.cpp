@@ -18,15 +18,14 @@ int blockDim = 128;
 bool playerAlive = true;
 Player player = Player(1200, 1200);
 
-Platform platforms[] = {Platform(3600, 0, 3*blockDim, blockDim, 3, 1, false, 0),
-                        Platform(400, 400, blockDim, blockDim, 1, 1, true, 400),
-                        Platform(1028, 768, 4*blockDim, blockDim, 4, 1, false, 0),
-                        Platform(2000, blockDim, 8*blockDim, blockDim, 8, 1, false, 0),
-                        Platform(2500, 600, 2*blockDim, blockDim, 2, 1, false, 0),
-                        Platform(3100, 1000, blockDim, blockDim, 1, 1, false, 0),
-                        Platform(2200, 1400, 5*blockDim, blockDim, 5, 1, false, 0),
-                        Platform(4500, 256, 7*blockDim, blockDim, 7, 1, false, 0),
-                        Platform(5840, 700, 4*blockDim, blockDim, 4, 1, false, 0)};
+Platform platforms[] = {Platform(3600, 0, 3*blockDim, blockDim, 3, 1, false, 0, 0),
+                        Platform(1028, 768, 4*blockDim, blockDim, 4, 1, false, 0, 0),
+                        Platform(2000, blockDim, 8*blockDim, blockDim, 8, 1, false, 0, 0),
+                        Platform(2500, 600, 2*blockDim, blockDim, 2, 1, false, 0, 0),
+                        Platform(3100, 1000, blockDim, blockDim, 1, 1, false, 0, 0),
+                        Platform(2200, 1400, 5*blockDim, blockDim, 5, 1, false, 0, 0),
+                        Platform(4500, 256, 7*blockDim, blockDim, 7, 1, false, 0, 0),
+                        Platform(5840, 700, 4*blockDim, blockDim, 4, 1, false, 0, 0)};
 int platformsSize = (sizeof(platforms)/sizeof(*platforms));
 
 float distTop;
@@ -41,6 +40,7 @@ Scene::Scene(){
 }
 
 void Scene::sceneInit(){
+    loadMovingPlatforms();
     player.playerInit();
     loadFeathers();
     loadEnemies();
@@ -87,6 +87,9 @@ void Scene::sceneUpdate(){
     for(Platform p : platforms){
         p.platformUpdate();
     }
+    for(int i = 0; i < movingPlatforms.size(); i++){
+        movingPlatforms[i]->platformUpdate();
+    }
     for(int i = 0; i < enemies.size(); i++){
         enemies[i]->enemyUpdate();
     }
@@ -99,6 +102,7 @@ void Scene::sceneUpdate(){
     }
 
     sceneCollisions();
+    movingSceneCollisions();
     enemySceneCollisions();
     featherCollision();
 
@@ -109,6 +113,9 @@ void Scene::sceneUpdate(){
 
     for(int i = 0; i < enemies.size(); i++){
         enemies[i]->enemyDisplay(enemyTex);
+    }
+    for(int i = 0; i < movingPlatforms.size(); i++){
+        movingPlatforms[i]->platformDisplay();
     }
     renderPlatforms();
     renderFeathers();
@@ -125,6 +132,12 @@ void Scene::sceneUpdate(){
             glDisable(GL_TEXTURE_2D);
         glPopMatrix();
     }
+}
+
+void Scene::loadMovingPlatforms(){
+    Platform p = Platform(400, 400, blockDim, blockDim, 1, 1, true, 400, 0.3);
+    Platform* pp = new Platform(p.platX, p.platY, p.platWidth, p.platHeight, p.platTexX, p.platTexY, p.move, p.distance, p.platSpeed);
+    movingPlatforms.emplace_back(pp);
 }
 
 void Scene::renderPlatforms(){
@@ -223,6 +236,71 @@ void Scene::sceneColliderLogic(int p){
         case 3:
             //std::cout << "put on left" << std::endl;
             player.pcX = platforms[p].platMinX - player.pcWidth;
+            player.pcVelocityX = 0;
+            break;
+        default:
+            break;
+    }
+}
+
+void Scene::movingSceneCollisions(){
+    for(int i = 0; i < movingPlatforms.size(); i++){
+        Platform* p = movingPlatforms[i];
+        if(player.playerMinX < p->platMaxX &&
+           player.playerMaxX > p->platMinX &&
+           player.playerMinY < p->platMaxY &&
+           player.playerMaxY > p->platMinY)
+        {
+            movingSceneColliderLogic(i);
+        }
+        else{
+            player.colourFlag = 1;
+        }
+    }
+}
+
+void Scene::movingSceneColliderLogic(int p){
+    Platform* plat = movingPlatforms[p];
+    player.colourFlag = 0;
+    int smallest = 0 ;
+
+    distTop = std::abs(player.playerMinY - plat->platMaxY);
+    distBot = std::abs(player.playerMaxY - plat->platMinY);
+    distRight = std::abs(player.playerMinX - plat->platMaxX);
+    distLeft = std::abs(player.playerMaxX - plat->platMinX);
+
+    dists[0] = distTop;
+    dists[1] = distBot;
+    dists[2] = distRight;
+    dists[3] = distLeft;
+
+    for(int i=1;  i < distsSize; i++){
+        if(dists[i] < dists[smallest]){
+            smallest = i;
+        }
+    }
+
+    switch(smallest){
+        case 0:
+            //std::cout << "put on top" << std::endl;
+            player.pcY = plat->platMaxY;
+            player.pcVelocityY = 0;
+            player.grounded = true;
+            break;
+        case 1:
+            //std::cout << "put on bot" << std::endl;
+            player.pcY = plat->platMinY - player.pcHeight;
+            player.pcVelocityY = 0;
+            player.grounded = false;
+            break;
+        case 2:
+            //std::cout << "put on right" << std::endl;
+            player.pcX = plat->platMaxX;
+            player.pcVelocityX = 0;
+            break;
+        case 3:
+            //std::cout << "put on left" << std::endl;
+            player.pcX = plat->platMinX - player.pcWidth;
             player.pcVelocityX = 0;
             break;
         default:

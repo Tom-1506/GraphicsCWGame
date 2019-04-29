@@ -6,9 +6,10 @@
 
 class Platform {
     public:
-        Platform(float posX, float posY, float w, float h, int texRepeatX, int texRepeatY, bool move, int distance);
+        Platform(float posX, float posY, float w, float h, int texRepeatX, int texRepeatY, bool move, int distance, float speed);
 
         void platformUpdate();
+        void platformDisplay();
         void platformMove();
         void platformMoveUpdate();
 
@@ -21,8 +22,10 @@ class Platform {
 
         GLfloat startX;
         bool move;
+        bool movingRight;
         int distance;
         float platVelocityX;
+        float platSpeed;
 
         float platMinX;
         float platMaxX;

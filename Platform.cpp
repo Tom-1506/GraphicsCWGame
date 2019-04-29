@@ -1,8 +1,6 @@
 #include "Platform.h"
 
-float platSpeed = 1;
-
-Platform::Platform(float posX, float posY, float w, float h, int texRepeatX, int texRepeatY, bool move, int distance){
+Platform::Platform(float posX, float posY, float w, float h, int texRepeatX, int texRepeatY, bool move, int distance, float speed){
     platX = posX;
     platY = posY;
     startX = posX;
@@ -12,6 +10,8 @@ Platform::Platform(float posX, float posY, float w, float h, int texRepeatX, int
     platTexY = texRepeatY;
     this->distance = distance;
     this->move = move;
+    movingRight = true;
+    platSpeed = speed;
 
     platMinX = platX;
     platMaxX = platX + platWidth;
@@ -25,26 +25,46 @@ void Platform::platformUpdate(){
     platMinY = platY;
     platMaxY = platY + platHeight;
     if(move){
-        platVelocityX = platSpeed;
+        if(movingRight){
+            platVelocityX = platSpeed;
+        }
+        else{
+            platVelocityX = -platSpeed;
+        }
         platformMove();
     }
 }
 
+void Platform::platformDisplay(){
+    //Enemy
+    glPushMatrix();
+        glEnable(GL_TEXTURE_2D);
+            glTranslatef(platX, platY, 0);
+            glColor3f(0, 0, 1);
+            drawQuad(0, 0, platWidth, platHeight, 1, 1);
+        glDisable(GL_TEXTURE_2D);
+        glLineWidth(15);
+        glColor3f(0, 0, 1);
+        if(drawCollisionBoxes){
+            drawBox(0, 0, platWidth, platHeight);
+        }
+    glPopMatrix();
+}
+
 void Platform::platformMove(){
-    std::cout << platX << std::endl;
-    if(platX > startX+distance){
+    if(movingRight && platX > startX+distance){
+        std::cout << "switch left" << std::endl;
         platVelocityX = -platSpeed;
-        std::cout << "vel: " << platVelocityX << std::endl;
+        movingRight = false;
     }
-    if(platX < startX){
+    if(!movingRight && platX < startX){
+        std::cout << "switch right" << std::endl;
         platVelocityX = platSpeed;
-        std::cout << "vel: " << platVelocityX << std::endl;
+        movingRight = true;
     }
     platformMoveUpdate();
 }
 
 void Platform::platformMoveUpdate(){
-    std::cout << platX << " before\n";
     platX += platVelocityX * deltaTime;
-    std::cout << platX << std::endl;
 }
