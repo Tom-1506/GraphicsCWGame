@@ -13,7 +13,10 @@ class Enemy {
         void enemyDisplay(GLuint enemyTex);
         void moveUpdate();
         void enemyColliderUpdate();
+        void switchDirection();
 
+        bool facingRight;
+        bool chasing;
         float colourFlag;
         bool grounded;
 

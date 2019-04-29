@@ -15,10 +15,13 @@ class Player{
         void playerColliderUpdate();
         void controlUpdate();
         void featherGet();
+        bool damaged();
 
         int numFeathers;
         float colourFlag;
         bool grounded;
+        bool hit;
+        int health;
 
         GLfloat pcX; //player character X position
         GLfloat pcY; //pc Y position

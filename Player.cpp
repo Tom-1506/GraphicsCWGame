@@ -19,6 +19,7 @@ Player::Player(GLfloat x, GLfloat y){
     playerMaxY = pcY + pcHeight;
     playerMinY = pcY;
     colourFlag = 1;
+    health = 5;
 }
 
 void Player::playerInit(){
@@ -94,6 +95,17 @@ void Player::controlUpdate(){
 void Player::featherGet(){
     numFeathers++;
     pcJumpHeight = 2+(0.5*numFeathers);
+}
+
+bool Player::damaged(){
+    health--;
+    std::cout << "health = " << health << std::endl;
+    if(health <= 0){
+        return true;
+    }
+    else{
+        return false;
+    }
 }
 
 void keyPressed(unsigned char key, int x, int y){

@@ -59,8 +59,8 @@ int main(int argc, char** argv){
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 
-    glutInitWindowPosition(1800,400);
-    glutInitWindowSize(1920, 1080);
+    glutInitWindowPosition(0,200);
+    glutInitWindowSize(3820, 1500);
     glutCreateWindow("CW_Game");
 
     glutDisplayFunc(display);

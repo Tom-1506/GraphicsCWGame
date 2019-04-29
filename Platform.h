@@ -6,16 +6,23 @@
 
 class Platform {
     public:
-        Platform(float posX, float posY, float w, float h, int texRepeatX, int texRepeatY);
+        Platform(float posX, float posY, float w, float h, int texRepeatX, int texRepeatY, bool move, int distance);
 
         void platformUpdate();
+        void platformMove();
+        void platformMoveUpdate();
 
-        GLuint platX;
-        GLuint platY;
-        GLuint platWidth;
-        GLuint platHeight;
-        GLuint platTexX;
-        GLuint platTexY;
+        GLfloat platX;
+        GLfloat platY;
+        GLfloat platWidth;
+        GLfloat platHeight;
+        float platTexX;
+        float platTexY;
+
+        GLfloat startX;
+        bool move;
+        int distance;
+        float platVelocityX;
 
         float platMinX;
         float platMaxX;

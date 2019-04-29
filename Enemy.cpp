@@ -1,6 +1,6 @@
 #include "Enemy.h"
 
-float enemySpeed = 1;
+float enemySpeed = 0.5;
 
 Enemy::Enemy(GLfloat x, GLfloat y){
     eX = x;
@@ -18,7 +18,8 @@ Enemy::Enemy(GLfloat x, GLfloat y){
 }
 
 void Enemy::enemyInit(){
-    std::cout <<"init"<<std::endl;
+    facingRight = true;
+    chasing = false;
 }
 
 void Enemy::enemyUpdate(){
@@ -29,13 +30,12 @@ void Enemy::enemyUpdate(){
 
 void Enemy::enemyDisplay(GLuint enemyTex){
     //Enemy
-    std::cout << "display   " << eY << std::endl;
     glPushMatrix();
         glEnable(GL_TEXTURE_2D);
             glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBindTexture(GL_TEXTURE_2D, enemyTex);
             glTranslatef(eX, eY, 0);
-            glColor3f(1, 0, 0);
+            glColor3f(0.5, 0, 1);
             drawQuad(0, 0, enemyWidth, enemyHeight, 1, 1);
         glDisable(GL_TEXTURE_2D);
         glLineWidth(15);
@@ -47,6 +47,13 @@ void Enemy::enemyDisplay(GLuint enemyTex){
 }
 
 void Enemy::moveUpdate(){
+    if(facingRight){
+        eVelocityX = enemySpeed;
+    }
+    else{
+        eVelocityX = -enemySpeed;
+    }
+
     eX += eVelocityX * deltaTime;
     eY += eVelocityY * deltaTime;
     eVelocityY += gravity * deltaTime;
@@ -59,3 +66,11 @@ void Enemy::enemyColliderUpdate(){
     enemyMinY = eY;
 }
 
+void Enemy::switchDirection(){
+    if(facingRight){
+        facingRight = false;
+    }
+    else{
+        facingRight = true;
+    }
+}

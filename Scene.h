@@ -13,7 +13,7 @@ class Scene{
         Scene();
 
         std::vector<Feather> feathers;
-        std::vector<Enemy> enemies;
+        std::vector<Enemy*> enemies;
 
         void sceneInit();
         void sceneUpdate();
@@ -26,7 +26,7 @@ class Scene{
 
         void loadEnemies();
         void enemySceneCollisions();
-        void enemySceneColliderLogic(Enemy e, int p);
+        void enemySceneColliderLogic(Enemy* e, int p);
         void enemyCollision();
         void enemyColliderLogic(int e);
 

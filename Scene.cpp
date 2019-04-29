@@ -5,22 +5,28 @@ GLuint enemyTex; //enemy texture
 GLuint ground; //ground texture
 GLuint feather; //feather texture
 GLuint background; //background texture
+GLuint health;
+GLuint died;
+
+float enemyHitSpeedY = 1;
+float enemyHitSpeedX = 1;
 
 int worldWidth = 7680;
 int worldHeight = 4320;
 int blockDim = 128;
 
-Player player = Player(512, 512);
+bool playerAlive = true;
+Player player = Player(1200, 1200);
 
-Platform platforms[] = {Platform(0, 0, worldWidth, blockDim, worldWidth/blockDim, 1), //floor
-                        Platform(0, blockDim, blockDim, worldHeight, 1, worldHeight/blockDim), //left wall
-                        Platform(worldWidth-blockDim, blockDim, blockDim, worldHeight, 1, worldHeight/blockDim), //right wall
-                        Platform(768, 400, blockDim, blockDim, 1, 1),
-                        Platform(1028, 768, 4*blockDim, blockDim, 4, 1),
-                        Platform(2000, blockDim, 8*blockDim, blockDim, 8, 1),
-                        Platform(2500, 600, 2*blockDim, blockDim, 2, 1),
-                        Platform(3100, 1000, blockDim, blockDim, 1, 1),
-                        Platform(2200, 1400, 5*blockDim, blockDim, 5, 1)};
+Platform platforms[] = {Platform(3600, 0, 3*blockDim, blockDim, 3, 1, false, 0),
+                        Platform(400, 400, blockDim, blockDim, 1, 1, true, 400),
+                        Platform(1028, 768, 4*blockDim, blockDim, 4, 1, false, 0),
+                        Platform(2000, blockDim, 8*blockDim, blockDim, 8, 1, false, 0),
+                        Platform(2500, 600, 2*blockDim, blockDim, 2, 1, false, 0),
+                        Platform(3100, 1000, blockDim, blockDim, 1, 1, false, 0),
+                        Platform(2200, 1400, 5*blockDim, blockDim, 5, 1, false, 0),
+                        Platform(4500, 256, 7*blockDim, blockDim, 7, 1, false, 0),
+                        Platform(5840, 700, 4*blockDim, blockDim, 4, 1, false, 0)};
 int platformsSize = (sizeof(platforms)/sizeof(*platforms));
 
 float distTop;
@@ -38,8 +44,8 @@ void Scene::sceneInit(){
     player.playerInit();
     loadFeathers();
     loadEnemies();
-    for(Enemy e : enemies){
-        e.enemyInit();
+    for(int i = 0; i < enemies.size(); i++){
+        enemies[i]->enemyInit();
     }
 
     playerTex = loadPNG((char*)"textures/player.png");
@@ -47,10 +53,12 @@ void Scene::sceneInit(){
     ground = loadPNG((char*)"textures/girder.png");
     feather = loadPNG((char*)"textures/feather.png");
     background = loadPNG((char*)"textures/grid_background.png");
+    health = loadPNG((char*) "textures/magic_dirt.png");
+    died = loadPNG((char*) "textures/you-died.png");
 }
 
 void Scene::sceneUpdate(){
-    glTranslatef(-player.pcX+1780, -player.pcY+952, 0);
+    glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
 
     //background
     glPushMatrix();
@@ -62,25 +70,61 @@ void Scene::sceneUpdate(){
         glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 
+    //health bar
+    glLoadIdentity();
+    glPushMatrix();
+        glEnable(GL_TEXTURE_2D);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBindTexture(GL_TEXTURE_2D, health);
+            glColor3f(0, 1, 0);
+            drawQuad(100, 1900, 100*player.health, 100, 1, 1);
+        glDisable(GL_TEXTURE_2D);
+    glPopMatrix();
+
+    glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
+
+
     for(Platform p : platforms){
         p.platformUpdate();
     }
-    for(Enemy e : enemies){
-        e.enemyUpdate();
+    for(int i = 0; i < enemies.size(); i++){
+        enemies[i]->enemyUpdate();
     }
 
-    player.playerUpdate();
+    if(playerAlive){
+        player.playerUpdate();
+        if(player.pcY < -1000){
+            playerAlive = false;
+        }
+    }
 
     sceneCollisions();
     enemySceneCollisions();
     featherCollision();
-    player.playerDisplay(playerTex);
 
-    for(Enemy e : enemies){
-        e.enemyDisplay(enemyTex);
+    if(playerAlive){
+        enemyCollision();
+        player.playerDisplay(playerTex);
+    }
+
+    for(int i = 0; i < enemies.size(); i++){
+        enemies[i]->enemyDisplay(enemyTex);
     }
     renderPlatforms();
     renderFeathers();
+
+    //dead
+    if(!playerAlive){
+        glLoadIdentity();
+        glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                glBindTexture(GL_TEXTURE_2D, died);
+                glColor3f(0, 1, 0);
+                drawQuad(0, 850, 3840, 400, 1, 1);
+            glDisable(GL_TEXTURE_2D);
+        glPopMatrix();
+    }
 }
 
 void Scene::renderPlatforms(){
@@ -147,8 +191,6 @@ void Scene::sceneColliderLogic(int p){
     distRight = std::abs(player.playerMinX - platforms[p].platMaxX);
     distLeft = std::abs(player.playerMaxX - platforms[p].platMinX);
 
-    //std::cout << "Top: " << distTop << " - Bottom: " << distBot << " - Right: " << distRight << " - Left: " << distLeft << std::endl;
-
     dists[0] = distTop;
     dists[1] = distBot;
     dists[2] = distRight;
@@ -159,8 +201,6 @@ void Scene::sceneColliderLogic(int p){
             smallest = i;
         }
     }
-
-    //std::cout << "smallest: " << smallest << std::endl;
 
     switch(smallest){
         case 0:
@@ -191,9 +231,7 @@ void Scene::sceneColliderLogic(int p){
 }
 
 void Scene::loadFeathers(){
-    feathers.emplace_back(Feather(512, 800));
-    feathers.emplace_back(Feather(2160, 800));
-    feathers.emplace_back(Feather(3840, 800));
+    feathers.emplace_back(Feather(6200, 1000));
 }
 
 void Scene::featherCollision(){
@@ -218,18 +256,31 @@ void Scene::featherColliderLogic(int f){
 }
 
 void Scene::loadEnemies(){
-    enemies.emplace_back(Enemy(1700, 800));
-    enemies.emplace_back(Enemy(1200, 1200));
+    Enemy e = Enemy(0, 0);
+    Enemy* ep = new Enemy(0, 0);
+    enemies.emplace_back(ep);
+
+    e = Enemy(1800, 512);
+    ep = new Enemy(e.eX, e.eY);
+    enemies.emplace_back(ep);
+
+    e = Enemy(4800, 600);
+    ep = new Enemy(e.eX, e.eY);
+    enemies.emplace_back(ep);
+
+    e = Enemy(2450, 1450);
+    ep = new Enemy(e.eX, e.eY);
+    enemies.emplace_back(ep);
 }
 
 void Scene::enemySceneCollisions(){
     for(int i = 0; i < enemies.size(); i++){
-        Enemy e = enemies[i];
+        Enemy* e = enemies[i];
         for(int j = 0; j < platformsSize; j++){
-            if(e.enemyMinX < platforms[j].platMaxX &&
-               e.enemyMaxX > platforms[j].platMinX &&
-               e.enemyMinY < platforms[j].platMaxY &&
-               e.enemyMaxY > platforms[j].platMinY)
+            if(e->enemyMinX < platforms[j].platMaxX &&
+               e->enemyMaxX > platforms[j].platMinX &&
+               e->enemyMinY < platforms[j].platMaxY &&
+               e->enemyMaxY > platforms[j].platMinY)
             {
                 enemySceneColliderLogic(e, j);
             }
@@ -241,16 +292,14 @@ void Scene::enemySceneCollisions(){
 
 }
 
-void Scene::enemySceneColliderLogic(Enemy e, int p){
-    e.colourFlag = 0;
+void Scene::enemySceneColliderLogic(Enemy* e, int p){
+    e->colourFlag = 0;
     int smallest = 0 ;
 
-    distTop = std::abs(e.enemyMinY - platforms[p].platMaxY);
-    distBot = std::abs(e.enemyMaxY - platforms[p].platMinY);
-    distRight = std::abs(e.enemyMinX - platforms[p].platMaxX);
-    distLeft = std::abs(e.enemyMaxX - platforms[p].platMinX);
-
-    //std::cout << "Top: " << distTop << " - Bottom: " << distBot << " - Right: " << distRight << " - Left: " << distLeft << std::endl;
+    distTop = std::abs(e->enemyMinY - platforms[p].platMaxY);
+    distBot = std::abs(e->enemyMaxY - platforms[p].platMinY);
+    distRight = std::abs(e->enemyMinX - platforms[p].platMaxX);
+    distLeft = std::abs(e->enemyMaxX - platforms[p].platMinX);
 
     dists[0] = distTop;
     dists[1] = distBot;
@@ -263,30 +312,41 @@ void Scene::enemySceneColliderLogic(Enemy e, int p){
         }
     }
 
+    //std::cout << "Enemy: " << e->eX << "Top: " << distTop << " - Bottom: " << distBot << " - Right: " << distRight << " - Left: " << distLeft << std::endl;
     //std::cout << "smallest: " << smallest << std::endl;
 
     switch(smallest){
         case 0:
             //std::cout << "put on top" << std::endl;
-            e.eY = platforms[p].platMaxY;
-            e.eVelocityY = 0;
-            e.grounded = true;
+            e->eY = platforms[p].platMaxY;
+            e->eVelocityY = 0;
+            e->grounded = true;
+            if(e->grounded){
+                if((e->eX + e->enemyWidth/2) > platforms[p].platMaxX){
+                    e->switchDirection();
+                }
+                if((e->eX + e->enemyWidth/2) < platforms[p].platMinX){
+                    e->switchDirection();
+                }
+            }
             break;
         case 1:
             //std::cout << "put on bot" << std::endl;
-            e.eY = platforms[p].platMinY - e.enemyHeight;
-            e.eVelocityY = 0;
-            e.grounded = false;
+            e->eY = platforms[p].platMinY - e->enemyHeight;
+            e->eVelocityY = 0;
+            e->grounded = false;
             break;
         case 2:
             //std::cout << "put on right" << std::endl;
-            e.eX = platforms[p].platMaxX;
-            e.eVelocityX = 0;
+            e->eX = platforms[p].platMaxX;
+            e->eVelocityX = 0;
+            e->switchDirection();
             break;
         case 3:
             //std::cout << "put on left" << std::endl;
-            e.eX = platforms[p].platMinX - e.enemyWidth;
-            e.eVelocityX = 0;
+            e->eX = platforms[p].platMinX - e->enemyWidth;
+            e->eVelocityX = 0;
+            e->switchDirection();
             break;
         default:
             break;
@@ -294,9 +354,92 @@ void Scene::enemySceneColliderLogic(Enemy e, int p){
 }
 
 void Scene::enemyCollision(){
-
+    for(int i = 0; i < enemies.size(); i++){
+        if(player.playerMinX < enemies[i]->enemyMaxX &&
+           player.playerMaxX > enemies[i]->enemyMinX &&
+           player.playerMinY < enemies[i]->enemyMaxY &&
+           player.playerMaxY > enemies[i]->enemyMinY)
+        {
+            enemyColliderLogic(i);
+        }
+        else{
+            player.colourFlag = 1;
+        }
+    }
 }
 
 void Scene::enemyColliderLogic(int e){
+    std::cout << "collided with " << e << std::endl;
+    Enemy* enemy = enemies[e];
+    int smallest = 0 ;
 
+    distTop = std::abs(player.playerMinY - enemy->enemyMaxY);
+    distBot = std::abs(player.playerMaxY - enemy->enemyMinY);
+    distRight = std::abs(player.playerMinX - enemy->enemyMaxX);
+    distLeft = std::abs(player.playerMaxX - enemy->enemyMinX);
+
+    dists[0] = distTop;
+    dists[1] = distBot;
+    dists[2] = distRight;
+    dists[3] = distLeft;
+
+    for(int i=1;  i < distsSize; i++){
+        if(dists[i] < dists[smallest]){
+            smallest = i;
+        }
+    }
+
+    switch(smallest){
+        case 0:
+            //std::cout << "put on top" << std::endl;
+            player.pcY = enemy->enemyMaxY;
+            player.pcVelocityY = 0;
+            player.pcVelocityY += enemyHitSpeedY;
+            player.grounded = false;
+            enemies.erase(enemies.begin() + e);
+            break;
+        case 1:
+            //std::cout << "put on bot" << std::endl;
+            player.pcY = enemy->enemyMinY - player.pcHeight;
+            player.pcVelocityY = 0;
+            player.pcVelocityY -= enemyHitSpeedY;
+            player.grounded = false;
+            if(player.damaged()){
+                std::cout << "dead" << std::endl;
+                playerAlive = false;
+            }
+            break;
+        case 2:
+            //std::cout << "put on right" << std::endl;
+            player.pcX = enemy->enemyMaxX;
+            player.pcVelocityX = 0;
+            if(player.grounded) {
+                player.pcVelocityY += enemyHitSpeedY;
+                player.pcVelocityX += enemyHitSpeedX;
+                player.grounded = false;
+            }
+            enemy->switchDirection();
+            if(player.damaged()){
+                std::cout << "dead" << std::endl;
+                playerAlive = false;
+            }
+            break;
+        case 3:
+            //std::cout << "put on left" << std::endl;
+            player.pcX = enemy->enemyMinX - player.pcWidth;
+            player.pcVelocityX = 0;
+            if(player.grounded){
+                player.pcVelocityY += enemyHitSpeedY;
+                player.pcVelocityX -= enemyHitSpeedX;
+                player.grounded = false;
+            }
+            enemy->switchDirection();
+            if(player.damaged()){
+                std::cout << "dead" << std::endl;
+                playerAlive = false;
+            }
+            break;
+        default:
+            break;
+    }
 }
