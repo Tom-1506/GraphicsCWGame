@@ -10,7 +10,6 @@ class Enemy {
 
         void enemyInit();
         void enemyUpdate();
-        void enemyDisplay(GLuint enemyTex);
         void moveUpdate();
         void enemyColliderUpdate();
         void switchDirection();

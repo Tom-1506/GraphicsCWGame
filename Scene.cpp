@@ -14,6 +14,7 @@ float enemyHitSpeedX = 1;
 int worldWidth = 7680;
 int worldHeight = 4320;
 int blockDim = 128;
+int healthBlockW = 160;
 
 bool playerAlive = true;
 Player player = Player(1200, 1200);
@@ -40,107 +41,168 @@ Scene::Scene(){
 }
 
 void Scene::sceneInit(){
+    started = true;
     loadMovingPlatforms();
     player.playerInit();
     loadFeathers();
     loadEnemies();
+    loadButtons();
     for(int i = 0; i < enemies.size(); i++){
         enemies[i]->enemyInit();
     }
 
-    playerTex = loadPNG((char*)"textures/player.png");
+    playerTex = loadPNG((char*)"textures/enemy1.png");
     enemyTex = loadPNG((char*)"textures/enemy.png");
-    ground = loadPNG((char*)"textures/girder.png");
+    ground = loadPNG((char*)"textures/magic_dirt.png");
     feather = loadPNG((char*)"textures/feather.png");
     background = loadPNG((char*)"textures/grid_background.png");
-    health = loadPNG((char*) "textures/magic_dirt.png");
+    health = loadPNG((char*) "textures/health.png");
     died = loadPNG((char*) "textures/you-died.png");
 }
 
 void Scene::sceneUpdate(){
-    glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
+    if(started){
+        glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
 
-    //background
-    glPushMatrix();
-        glEnable(GL_TEXTURE_2D);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            glBindTexture(GL_TEXTURE_2D, background);
-            glColor3f(0, 1, 0);
-            drawQuad(-1920, -1080, 1.5*worldWidth, 2*worldHeight, 45, 34);
-        glDisable(GL_TEXTURE_2D);
-    glPopMatrix();
+        //background
+        glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                glBindTexture(GL_TEXTURE_2D, background);
+                glColor3f(0, 1, 0);
+                drawQuad(-1920, -1080, 1.5*worldWidth, 2*worldHeight, 45, 34);
+            glDisable(GL_TEXTURE_2D);
+        glPopMatrix();
 
-    //health bar
-    glLoadIdentity();
-    glPushMatrix();
-        glEnable(GL_TEXTURE_2D);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            glBindTexture(GL_TEXTURE_2D, health);
-            glColor3f(0, 1, 0);
-            drawQuad(100, 1900, 100*player.health, 100, 1, 1);
-        glDisable(GL_TEXTURE_2D);
-    glPopMatrix();
-
-    glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
-
-
-    for(Platform p : platforms){
-        p.platformUpdate();
-    }
-    for(int i = 0; i < movingPlatforms.size(); i++){
-        movingPlatforms[i]->platformUpdate();
-    }
-    for(int i = 0; i < enemies.size(); i++){
-        enemies[i]->enemyUpdate();
-    }
-
-    if(playerAlive){
-        player.playerUpdate();
-        if(player.pcY < -1000){
-            playerAlive = false;
-        }
-    }
-
-    sceneCollisions();
-    movingSceneCollisions();
-    enemySceneCollisions();
-    featherCollision();
-
-    if(playerAlive){
-        enemyCollision();
-        player.playerDisplay(playerTex);
-    }
-
-    for(int i = 0; i < enemies.size(); i++){
-        enemies[i]->enemyDisplay(enemyTex);
-    }
-    for(int i = 0; i < movingPlatforms.size(); i++){
-        movingPlatforms[i]->platformDisplay();
-    }
-    renderPlatforms();
-    renderFeathers();
-
-    //dead
-    if(!playerAlive){
+        //health bar
         glLoadIdentity();
         glPushMatrix();
             glEnable(GL_TEXTURE_2D);
                 glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                glBindTexture(GL_TEXTURE_2D, died);
+                glBindTexture(GL_TEXTURE_2D, health);
                 glColor3f(0, 1, 0);
-                drawQuad(0, 850, 3840, 400, 1, 1);
+                drawQuad(100, 1900, healthBlockW*player.health, 40, player.health, 1);
             glDisable(GL_TEXTURE_2D);
+        glPopMatrix();
+
+        glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
+
+
+        for(Platform p : platforms){
+            p.platformUpdate();
+        }
+
+        for(Platform* m : movingPlatforms){
+            m->platformUpdate();
+        }
+
+        std::cout << "start" << std::endl;
+        for(int i = 0; i < enemies.size(); i++){
+            enemies[i]->enemyUpdate();
+        }
+        std::cout << "end" << std::endl;
+
+        if(playerAlive){
+            player.playerUpdate();
+            if(player.pcY < -1000){
+                playerAlive = false;
+            }
+        }
+
+        sceneCollisions();
+        movingSceneCollisions();
+        enemySceneCollisions();
+        featherCollision();
+
+        if(playerAlive){
+            enemyCollision();
+            displayPlayer();
+        }
+
+        displayEnemies();
+        displayMovingPlatforms();
+        displayPlatforms();
+        displayFeathers();
+
+        //dead
+        if(!playerAlive){
+            glLoadIdentity();
+            glPushMatrix();
+                glEnable(GL_TEXTURE_2D);
+                    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                    glBindTexture(GL_TEXTURE_2D, died);
+                    glColor3f(0, 1, 0);
+                    drawQuad(0, 850, 3840, 400, 1, 1);
+                glDisable(GL_TEXTURE_2D);
+            glPopMatrix();
+        }
+    }
+    else{
+        //render menu here
+    }
+}
+
+void Scene::displayPlayer(){
+    //Player character
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glPushMatrix();
+        glEnable(GL_TEXTURE_2D);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBindTexture(GL_TEXTURE_2D, playerTex);
+            glTranslatef(player.pcX, player.pcY, 0);
+            glColor3f(1, 0, 0);
+            drawQuad(0, 0, player.pcWidth, player.pcHeight, 1, 1);
+        glDisable(GL_TEXTURE_2D);
+        glLineWidth(15);
+        glColor3f(1, player.colourFlag, player.colourFlag);
+        if(drawCollisionBoxes){
+            drawBox(0, 0, player.pcWidth, player.pcHeight);
+        }
+    glPopMatrix();
+}
+
+void Scene::displayEnemies(){
+    //Enemy
+    for(Enemy* e : enemies){
+        glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                glBindTexture(GL_TEXTURE_2D, playerTex);
+                glTranslatef(e->eX, e->eY, 0);
+                glColor3f(0.5, 0, 1);
+                drawQuad(0, 0, e->enemyWidth, e->enemyHeight, 1, 1);
+            glDisable(GL_TEXTURE_2D);
+            glLineWidth(15);
+            glColor3f(1, e->colourFlag, e->colourFlag);
+            if(drawCollisionBoxes){
+                drawBox(0, 0, e->enemyWidth, e->enemyHeight);
+            }
         glPopMatrix();
     }
 }
 
-void Scene::loadMovingPlatforms(){
-    Platform p = Platform(400, 400, blockDim, blockDim, 1, 1, true, 400, 0.3);
-    Platform* pp = new Platform(p.platX, p.platY, p.platWidth, p.platHeight, p.platTexX, p.platTexY, p.move, p.distance, p.platSpeed);
-    movingPlatforms.emplace_back(pp);
+void Scene::displayMovingPlatforms(){
+    for(Platform* m : movingPlatforms){
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                glBindTexture(GL_TEXTURE_2D, ground);
+                glColor3f(0, 0, 0);
+                drawQuad(m->platX, m->platY, m->platWidth, m->platHeight, m->platTexX, m->platTexY);
+            glDisable(GL_TEXTURE_2D);
+            glLineWidth(15);
+            glColor3f(1, player.colourFlag, player.colourFlag);
+            if(drawCollisionBoxes){
+                drawBox(m->platX, m->platY, m->platWidth, m->platHeight);
+            }
+        glPopMatrix();
+    }
 }
 
-void Scene::renderPlatforms(){
+void Scene::displayPlatforms(){
     for(Platform p : platforms){
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -160,7 +222,7 @@ void Scene::renderPlatforms(){
     }
 }
 
-void Scene::renderFeathers(){
+void Scene::displayFeathers(){
     for(Feather f : feathers){
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -243,12 +305,19 @@ void Scene::sceneColliderLogic(int p){
     }
 }
 
+void Scene::loadMovingPlatforms(){
+    movingPlatforms.emplace_back(new Platform(400, 0, 3*blockDim, blockDim, 3, 1, true, 800, 0.5));
+    movingPlatforms.emplace_back(new Platform(3300, 850, 5*blockDim, blockDim, 5, 1, true, 1000, 0.6));
+    movingPlatforms.emplace_back(new Platform(300, 1400, 4*blockDim, blockDim, 4, 1, true, 1000, 0.6));
+    movingPlatforms.emplace_back(new Platform(3000, 2000, 2*blockDim, blockDim, 2, 1, true, 500, 0.3));
+}
+
 void Scene::movingSceneCollisions(){
     for(int i = 0; i < movingPlatforms.size(); i++){
         Platform* p = movingPlatforms[i];
         if(player.playerMinX < p->platMaxX &&
            player.playerMaxX > p->platMinX &&
-           player.playerMinY < p->platMaxY &&
+           player.playerMinY <= p->platMaxY &&
            player.playerMaxY > p->platMinY)
         {
             movingSceneColliderLogic(i);
@@ -283,9 +352,14 @@ void Scene::movingSceneColliderLogic(int p){
     switch(smallest){
         case 0:
             //std::cout << "put on top" << std::endl;
-            player.pcY = plat->platMaxY;
-            player.pcVelocityY = 0;
+            //std::cout << "scene: " << plat->platVelocityX << " " << deltaTime<< std::endl;
             player.grounded = true;
+            player.pcX += (plat->platVelocityX * deltaTime);
+            player.pcY = plat->platMaxY;
+            if(player.pcVelocityY < 0)
+            {
+                player.pcVelocityY = 0;
+            }
             break;
         case 1:
             //std::cout << "put on bot" << std::endl;
@@ -334,21 +408,10 @@ void Scene::featherColliderLogic(int f){
 }
 
 void Scene::loadEnemies(){
-    Enemy e = Enemy(0, 0);
-    Enemy* ep = new Enemy(0, 0);
-    enemies.emplace_back(ep);
+    enemies.emplace_back(new Enemy(2100, 300));
+    enemies.emplace_back(new Enemy(2300, 1600));
+    enemies.emplace_back(new Enemy(4800, 400));
 
-    e = Enemy(1800, 512);
-    ep = new Enemy(e.eX, e.eY);
-    enemies.emplace_back(ep);
-
-    e = Enemy(4800, 600);
-    ep = new Enemy(e.eX, e.eY);
-    enemies.emplace_back(ep);
-
-    e = Enemy(2450, 1450);
-    ep = new Enemy(e.eX, e.eY);
-    enemies.emplace_back(ep);
 }
 
 void Scene::enemySceneCollisions(){
@@ -400,10 +463,10 @@ void Scene::enemySceneColliderLogic(Enemy* e, int p){
             e->eVelocityY = 0;
             e->grounded = true;
             if(e->grounded){
-                if((e->eX + e->enemyWidth/2) > platforms[p].platMaxX){
+                if((e->eX + e->enemyWidth*0.75) > platforms[p].platMaxX && e->facingRight){
                     e->switchDirection();
                 }
-                if((e->eX + e->enemyWidth/2) < platforms[p].platMinX){
+                if((e->eX + e->enemyWidth*0.25) < platforms[p].platMinX && !e->facingRight){
                     e->switchDirection();
                 }
             }
@@ -482,42 +545,48 @@ void Scene::enemyColliderLogic(int e){
             player.pcVelocityY = 0;
             player.pcVelocityY -= enemyHitSpeedY;
             player.grounded = false;
-            if(player.damaged()){
-                std::cout << "dead" << std::endl;
-                playerAlive = false;
+            if(!player.hit){
+                if(player.damaged()){
+                    std::cout << "dead" << std::endl;
+                    playerAlive = false;
+                }
             }
             break;
         case 2:
             //std::cout << "put on right" << std::endl;
             player.pcX = enemy->enemyMaxX;
             player.pcVelocityX = 0;
-            if(player.grounded) {
-                player.pcVelocityY += enemyHitSpeedY;
-                player.pcVelocityX += enemyHitSpeedX;
-                player.grounded = false;
-            }
+            player.pcVelocityX += enemyHitSpeedX;
+            player.grounded = false;
             enemy->switchDirection();
-            if(player.damaged()){
-                std::cout << "dead" << std::endl;
-                playerAlive = false;
+            if(!player.hit){
+                player.pcVelocityY += enemyHitSpeedY;
+                if(player.damaged()){
+                    std::cout << "dead" << std::endl;
+                    playerAlive = false;
+                }
             }
             break;
         case 3:
             //std::cout << "put on left" << std::endl;
             player.pcX = enemy->enemyMinX - player.pcWidth;
             player.pcVelocityX = 0;
-            if(player.grounded){
-                player.pcVelocityY += enemyHitSpeedY;
-                player.pcVelocityX -= enemyHitSpeedX;
-                player.grounded = false;
-            }
+            player.pcVelocityX -= enemyHitSpeedX;
+            player.grounded = false;
             enemy->switchDirection();
-            if(player.damaged()){
-                std::cout << "dead" << std::endl;
-                playerAlive = false;
+            if(!player.hit){
+                player.pcVelocityY += enemyHitSpeedY;
+                if(player.damaged()){
+                    std::cout << "dead" << std::endl;
+                    playerAlive = false;
+                }
             }
             break;
         default:
             break;
     }
+}
+
+void Scene::loadButtons(){
+
 }

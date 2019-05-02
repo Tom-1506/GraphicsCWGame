@@ -1,5 +1,4 @@
 #include "Utility.h"
-#include "Player.h"
 #include "Scene.h"
 
 //Function definitions
@@ -9,11 +8,15 @@ void reshape(int w, int h);
 void init();
 void keyfunction(unsigned char key, int x, int y);
 
+int viewWidth;
+int viewHeight;
+
 Scene scene = Scene();
 
 void update(){
     updateTime();
     scene.sceneUpdate();
+
 }
 
 void display(void){
@@ -35,6 +38,8 @@ void init(void){
 }
 
 void reshape(int w, int h){
+    viewWidth = w;
+    viewHeight = h;
     glViewport(0,0,w,h);
 
     glMatrixMode(GL_PROJECTION);
@@ -55,6 +60,17 @@ void keyfunction(unsigned char key, int x, int y){
     }
 }
 
+void mouseFunc(int button, int state, int x, int y){
+    switch (button)
+    {
+        case GLUT_LEFT_BUTTON:
+            std::cout << x << ", " << viewHeight - y << std::endl;
+            break;
+        default:
+            break;
+    }
+}
+
 int main(int argc, char** argv){
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
@@ -69,6 +85,7 @@ int main(int argc, char** argv){
     init();
 
     glutKeyboardFunc(keyfunction);
+    glutMouseFunc(mouseFunc);
 
     glutMainLoop();
 }

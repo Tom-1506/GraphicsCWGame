@@ -9,7 +9,6 @@ class Platform {
         Platform(float posX, float posY, float w, float h, int texRepeatX, int texRepeatY, bool move, int distance, float speed);
 
         void platformUpdate();
-        void platformDisplay();
         void platformMove();
         void platformMoveUpdate();
 

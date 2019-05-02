@@ -1,12 +1,12 @@
 #include "Utility.h"
 
-bool drawCollisionBoxes = true;
-int deltaTime;
+bool drawCollisionBoxes = false;
+double deltaTime;
 
-int oldTimeSinceStart = 0;
+double oldTimeSinceStart = 0;
 
 void updateTime(){
-    int timeSinceStart = glutGet(GLUT_ELAPSED_TIME);
+    double timeSinceStart = glutGet(GLUT_ELAPSED_TIME);
     deltaTime = timeSinceStart - oldTimeSinceStart;
     oldTimeSinceStart = timeSinceStart;
 }

@@ -27,25 +27,8 @@ void Enemy::enemyUpdate(){
     enemyColliderUpdate();
 }
 
-void Enemy::enemyDisplay(GLuint enemyTex){
-    //Enemy
-    glPushMatrix();
-        glEnable(GL_TEXTURE_2D);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            glBindTexture(GL_TEXTURE_2D, enemyTex);
-            glTranslatef(eX, eY, 0);
-            glColor3f(0.5, 0, 1);
-            drawQuad(0, 0, enemyWidth, enemyHeight, 1, 1);
-        glDisable(GL_TEXTURE_2D);
-        glLineWidth(15);
-        glColor3f(1, colourFlag, colourFlag);
-        if(drawCollisionBoxes){
-            drawBox(0, 0, enemyWidth, enemyHeight);
-        }
-    glPopMatrix();
-}
-
 void Enemy::moveUpdate(){
+    std::cout << eX << " : " << eY << " : " << enemySpeed << " : " << eVelocityY << " : " << deltaTime << std::endl;
     if(facingRight){
         eVelocityX = enemySpeed;
     }

@@ -10,12 +10,13 @@ class Player{
 
         void playerInit();
         void playerUpdate();
-        void playerDisplay(GLuint playerTex);
         void moveUpdate();
         void playerColliderUpdate();
         void controlUpdate();
         void featherGet();
         bool damaged();
+
+        GLuint playerTex;
 
         int numFeathers;
         float colourFlag;

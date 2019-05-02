@@ -6,6 +6,9 @@ bool* keySpecialStates = new bool[246];
 float pcSpeed = 1; // make 1 after testing
 float pcJumpHeight;
 
+int timeCount;
+int timer = 2000;
+
 Player::Player(GLfloat x, GLfloat y){
     pcX = x;
     pcY = y;
@@ -20,6 +23,9 @@ Player::Player(GLfloat x, GLfloat y){
     playerMinY = pcY;
     colourFlag = 1;
     health = 5;
+
+    hit = false;
+    timeCount = 0;
 }
 
 void Player::playerInit(){
@@ -29,6 +35,8 @@ void Player::playerInit(){
     glutKeyboardUpFunc(keyUp);
     glutSpecialFunc(keySpecialPressed);
     glutSpecialUpFunc(keySpecialUp);
+
+    playerTex = loadPNG((char*)"textures/enemy.png");
 }
 
 void Player::playerUpdate(){
@@ -37,24 +45,15 @@ void Player::playerUpdate(){
     playerColliderUpdate();
 
     controlUpdate();
-}
 
-void Player::playerDisplay(GLuint playerTex){
-    //Player character
-    glPushMatrix();
-        glEnable(GL_TEXTURE_2D);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            glBindTexture(GL_TEXTURE_2D, playerTex);
-            glTranslatef(pcX, pcY, 0);
-            glColor3f(1, 0, 0);
-            drawQuad(0, 0, pcWidth, pcHeight, 1, 1);
-        glDisable(GL_TEXTURE_2D);
-        glLineWidth(15);
-        glColor3f(1, colourFlag, colourFlag);
-        if(drawCollisionBoxes){
-            drawBox(0, 0, pcWidth, pcHeight);
+    if(hit){
+        timeCount += deltaTime;
+
+        if(timeCount > timer){
+            hit = false;
+            timeCount = 0;
         }
-    glPopMatrix();
+    }
 }
 
 void Player::playerColliderUpdate(){
@@ -86,7 +85,7 @@ void Player::controlUpdate(){
     }
     if(keySpecialStates[GLUT_KEY_UP]){
         if(grounded){
-            pcVelocityY += pcJumpHeight;
+            pcVelocityY = pcJumpHeight;
         }
         grounded = false;
     }
@@ -94,12 +93,12 @@ void Player::controlUpdate(){
 
 void Player::featherGet(){
     numFeathers++;
-    pcJumpHeight = 2+(0.5*numFeathers);
+    pcJumpHeight = 2+(0.2*numFeathers);
 }
 
 bool Player::damaged(){
     health--;
-    std::cout << "health = " << health << std::endl;
+    hit = true;
     if(health <= 0){
         return true;
     }

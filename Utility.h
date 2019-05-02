@@ -19,6 +19,6 @@ void drawQuad(float posX, float posY, float w, float h, int texRepeatX, int texR
 GLuint loadPNG(char* name);
 
 extern bool drawCollisionBoxes;
-extern int deltaTime;
+extern double deltaTime;
 
 #endif //GRAPHICSCWGAME_UTILITY_H
