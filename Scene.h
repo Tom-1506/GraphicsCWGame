@@ -18,6 +18,9 @@ class Scene{
         std::vector<Platform*> movingPlatforms;
         std::vector<Button*> buttons;
 
+        std::vector<GLuint> playerWalk;
+        std::vector<GLuint> playerJump;
+
         bool started;
 
         void sceneInit();

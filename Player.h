@@ -24,6 +24,13 @@ class Player{
         bool hit;
         int health;
 
+        //Movement states
+        bool idle;
+        bool movingRight;
+        bool movingLeft;
+        bool jumping;
+        bool falling;
+
         GLfloat pcX; //player character X position
         GLfloat pcY; //pc Y position
         GLfloat pcWidth; //pc width

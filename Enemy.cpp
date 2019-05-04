@@ -22,15 +22,16 @@ void Enemy::enemyInit(){
 }
 
 void Enemy::enemyUpdate(){
+    //std::cout << "vel: " << eVelocityY << std::endl;
     moveUpdate();
-
     enemyColliderUpdate();
 }
 
 void Enemy::moveUpdate(){
-    std::cout << eX << " : " << eY << " : " << enemySpeed << " : " << eVelocityY << " : " << deltaTime << std::endl;
+    //std::cout << eX << " : " << eY << " : " << enemySpeed << " : " << eVelocityY << " : " << deltaTime << std::endl;
     if(facingRight){
         eVelocityX = enemySpeed;
+
     }
     else{
         eVelocityX = -enemySpeed;
@@ -39,6 +40,7 @@ void Enemy::moveUpdate(){
     eX += eVelocityX * deltaTime;
     eY += eVelocityY * deltaTime;
     eVelocityY += gravity * deltaTime;
+
 }
 
 void Enemy::enemyColliderUpdate(){

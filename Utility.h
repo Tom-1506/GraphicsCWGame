@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <vector>
+#include <cstring>
 
 #ifndef GRAPHICSCWGAME_UTILITY_H
 #define GRAPHICSCWGAME_UTILITY_H

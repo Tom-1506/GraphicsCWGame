@@ -11,6 +11,11 @@ GLuint died;
 float enemyHitSpeedY = 1;
 float enemyHitSpeedX = 1;
 
+int walkTexCounter = 0;
+int jumpTexCounter = 0;
+int texChangeTimer = 0;
+int texTimer = 75;
+
 int worldWidth = 7680;
 int worldHeight = 4320;
 int blockDim = 128;
@@ -51,11 +56,24 @@ void Scene::sceneInit(){
         enemies[i]->enemyInit();
     }
 
-    playerTex = loadPNG((char*)"textures/enemy1.png");
+    playerTex = loadPNG((char*)"textures/soma/idle.png");
+    for(int i = 1; i < 18; i++){
+        std::string fpath = "textures/soma/walking/walk" + std::to_string(i) + ".png";
+        char cstr[fpath.size() + 1];
+        strcpy(cstr, fpath.c_str());
+        playerWalk.emplace_back(loadPNG(cstr));
+    }
+    for(int i = 1; i < 7; i++){
+        std::string fpath = "textures/soma/jumping/jump" + std::to_string(i) + ".png";
+        char cstr[fpath.size() + 1];
+        strcpy(cstr, fpath.c_str());
+        playerJump.emplace_back(loadPNG(cstr));
+    }
+
     enemyTex = loadPNG((char*)"textures/enemy.png");
     ground = loadPNG((char*)"textures/magic_dirt.png");
     feather = loadPNG((char*)"textures/feather.png");
-    background = loadPNG((char*)"textures/grid_background.png");
+    background = loadPNG((char*)"textures/enemy1.png");
     health = loadPNG((char*) "textures/health.png");
     died = loadPNG((char*) "textures/you-died.png");
 }
@@ -96,11 +114,11 @@ void Scene::sceneUpdate(){
             m->platformUpdate();
         }
 
-        std::cout << "start" << std::endl;
+        //std::cout << "start" << std::endl;
         for(int i = 0; i < enemies.size(); i++){
             enemies[i]->enemyUpdate();
         }
-        std::cout << "end" << std::endl;
+        //std::cout << "end" << std::endl;
 
         if(playerAlive){
             player.playerUpdate();
@@ -143,16 +161,54 @@ void Scene::sceneUpdate(){
 }
 
 void Scene::displayPlayer(){
+    if(walkTexCounter > 16){
+        walkTexCounter = 0;
+    }
+    if(player.grounded){
+        jumpTexCounter = 0;
+    }
+
     //Player character
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glPushMatrix();
         glEnable(GL_TEXTURE_2D);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            glBindTexture(GL_TEXTURE_2D, playerTex);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_CLAMP_TO_BORDER);
+            if(player.jumping){
+                glBindTexture(GL_TEXTURE_2D, playerJump[jumpTexCounter]);
+            }
+            else if(player.falling || (player.idle && !player.grounded)){
+                glBindTexture(GL_TEXTURE_2D, playerJump[5]);
+            }
+            else if(player.idle && player.grounded){
+                glBindTexture(GL_TEXTURE_2D, playerTex);
+            }
+            else{
+                if(player.movingRight || player.movingLeft){
+                    glBindTexture(GL_TEXTURE_2D, playerWalk[walkTexCounter]);
+                }
+
+            }
             glTranslatef(player.pcX, player.pcY, 0);
             glColor3f(1, 0, 0);
-            drawQuad(0, 0, player.pcWidth, player.pcHeight, 1, 1);
+            if(player.idle && !player.grounded){
+                drawQuad(0, 0, player.pcWidth+60, player.pcHeight, 1, 1);
+            }
+            else if(player.idle){
+                drawQuad(0, 0, player.pcWidth, player.pcHeight, 1, 1);
+            }
+            else if(player.movingRight && !player.grounded){
+                drawQuad(0, 0, player.pcWidth+60, player.pcHeight, 1, 1);
+            }
+            else if(player.movingLeft && !player.grounded){
+                drawQuad(0, 0, player.pcWidth+60, player.pcHeight, -1, 1);
+            }
+            else if(player.movingRight){
+                drawQuad(0, 0, player.pcWidth+30, player.pcHeight, 1, 1);
+            }
+            else if(player.movingLeft){
+                drawQuad(0, 0, player.pcWidth+30, player.pcHeight, -1, 1);
+            }
         glDisable(GL_TEXTURE_2D);
         glLineWidth(15);
         glColor3f(1, player.colourFlag, player.colourFlag);
@@ -160,6 +216,15 @@ void Scene::displayPlayer(){
             drawBox(0, 0, player.pcWidth, player.pcHeight);
         }
     glPopMatrix();
+
+    texChangeTimer += deltaTime;
+    if(texChangeTimer > texTimer){
+        walkTexCounter++;
+        if(jumpTexCounter < 5){
+            jumpTexCounter++;
+        }
+        texChangeTimer = 0;
+    }
 }
 
 void Scene::displayEnemies(){
@@ -410,8 +475,9 @@ void Scene::featherColliderLogic(int f){
 void Scene::loadEnemies(){
     enemies.emplace_back(new Enemy(2100, 300));
     enemies.emplace_back(new Enemy(2300, 1600));
-    enemies.emplace_back(new Enemy(4800, 400));
-
+    enemies.emplace_back(new Enemy(2400, 300));
+    /*enemies.emplace_back(new Enemy(2300, 300));
+    enemies.emplace_back(new Enemy(2500, 1600));*/
 }
 
 void Scene::enemySceneCollisions(){

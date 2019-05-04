@@ -12,8 +12,8 @@ int timer = 2000;
 Player::Player(GLfloat x, GLfloat y){
     pcX = x;
     pcY = y;
-    pcWidth = 156; //pc width
-    pcHeight = 256; //pc height
+    pcWidth = 163; //pc width
+    pcHeight = 306; //pc height
     pcVelocityX; //pc movement speed
     pcVelocityY;
     gravity = -0.004; //world gravity
@@ -26,6 +26,8 @@ Player::Player(GLfloat x, GLfloat y){
 
     hit = false;
     timeCount = 0;
+
+    idle = true;
 }
 
 void Player::playerInit(){
@@ -45,6 +47,51 @@ void Player::playerUpdate(){
     playerColliderUpdate();
 
     controlUpdate();
+
+    if(pcVelocityX > 0){
+        movingLeft = false;
+        idle = false;
+        movingRight = true;
+    }
+    else if(pcVelocityX < 0){
+        movingRight = false;
+        idle = false;
+        movingLeft = true;
+    }
+    else{
+        movingRight = false;
+        movingLeft = false;
+        idle = true;
+    }
+
+    if(pcVelocityY > 0.2){
+        falling = false;
+        jumping = true;
+    }
+    else if(pcVelocityY < -0.2){
+        jumping = false;
+        falling = true;
+    }
+    else{
+        jumping = false;
+        falling = false;
+    }
+
+    /*if(idle){
+        std::cout << "idle" << std::endl;
+    }
+    else if(jumping){
+        std::cout << "jumping" << std::endl;
+    }
+    else if(falling){
+        std::cout << "falling" << std::endl;
+    }
+    else if(movingRight){
+        std::cout << "moving right" << std::endl;
+    }
+    else if(movingLeft){
+        std::cout << "moving left" << std::endl;
+    }*/
 
     if(hit){
         timeCount += deltaTime;
