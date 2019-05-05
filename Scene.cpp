@@ -1,7 +1,6 @@
 #include "Scene.h"
 
 GLuint playerTex; //player texture
-GLuint enemyTex; //enemy texture
 GLuint ground; //ground texture
 GLuint feather; //feather texture
 GLuint background; //background texture
@@ -11,27 +10,30 @@ GLuint died;
 float enemyHitSpeedY = 1;
 float enemyHitSpeedX = 1;
 
-int walkTexCounter = 0;
+int playerWalkTexCounter = 0;
+int enemyWalkTexCounter = 0;
+int sc;
+bool squashEnemy;
 int jumpTexCounter = 0;
 int texChangeTimer = 0;
 int texTimer = 75;
 
 int worldWidth = 7680;
 int worldHeight = 4320;
-int blockDim = 128;
-int healthBlockW = 160;
+int blockWidth = 256;
+int blockHeight = 128;
+int healthBlockW = 320;
 
 bool playerAlive = true;
 Player player = Player(1200, 1200);
 
-Platform platforms[] = {Platform(3600, 0, 3*blockDim, blockDim, 3, 1, false, 0, 0),
-                        Platform(1028, 768, 4*blockDim, blockDim, 4, 1, false, 0, 0),
-                        Platform(2000, blockDim, 8*blockDim, blockDim, 8, 1, false, 0, 0),
-                        Platform(2500, 600, 2*blockDim, blockDim, 2, 1, false, 0, 0),
-                        Platform(3100, 1000, blockDim, blockDim, 1, 1, false, 0, 0),
-                        Platform(2200, 1400, 5*blockDim, blockDim, 5, 1, false, 0, 0),
-                        Platform(4500, 256, 7*blockDim, blockDim, 7, 1, false, 0, 0),
-                        Platform(5840, 700, 4*blockDim, blockDim, 4, 1, false, 0, 0)};
+Platform platforms[] = {Platform(3600, 0, 2*blockWidth, blockHeight, 2, 1, false, 0, 0),
+                        Platform(1028, 768, 3*blockWidth, blockHeight, 3, 1, false, 0, 0),
+                        Platform(2000, blockHeight, 4*blockWidth, blockHeight, 4, 1, false, 0, 0),
+                        Platform(3100, 800, blockWidth, blockHeight, 1, 1, false, 0, 0),
+                        Platform(2200, 1400, 3*blockWidth, blockHeight, 3, 1, false, 0, 0),
+                        Platform(4500, 256, 5*blockWidth, blockHeight, 5, 1, false, 0, 0),
+                        Platform(5840, 700, 3*blockWidth, blockHeight, 3, 1, false, 0, 0)};
 int platformsSize = (sizeof(platforms)/sizeof(*platforms));
 
 float distTop;
@@ -69,42 +71,32 @@ void Scene::sceneInit(){
         strcpy(cstr, fpath.c_str());
         playerJump.emplace_back(loadPNG(cstr));
     }
-
-    enemyTex = loadPNG((char*)"textures/enemy.png");
-    ground = loadPNG((char*)"textures/magic_dirt.png");
+    for(int i = 1; i < 17; i++){
+        std::string fpath = "textures/armour/walk" + std::to_string(i) + ".png";
+        char cstr[fpath.size() + 1];
+        strcpy(cstr, fpath.c_str());
+        enemyWalk.emplace_back(loadPNG(cstr));
+    }
+    ground = loadPNG((char*)"textures/blocks.png");
     feather = loadPNG((char*)"textures/feather.png");
-    background = loadPNG((char*)"textures/enemy1.png");
+    background = loadPNG((char*)"textures/sky-backdrop.png");
     health = loadPNG((char*) "textures/health.png");
     died = loadPNG((char*) "textures/you-died.png");
 }
 
 void Scene::sceneUpdate(){
     if(started){
-        glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
-
         //background
         glPushMatrix();
             glEnable(GL_TEXTURE_2D);
                 glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
                 glBindTexture(GL_TEXTURE_2D, background);
                 glColor3f(0, 1, 0);
-                drawQuad(-1920, -1080, 1.5*worldWidth, 2*worldHeight, 45, 34);
-            glDisable(GL_TEXTURE_2D);
-        glPopMatrix();
-
-        //health bar
-        glLoadIdentity();
-        glPushMatrix();
-            glEnable(GL_TEXTURE_2D);
-                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                glBindTexture(GL_TEXTURE_2D, health);
-                glColor3f(0, 1, 0);
-                drawQuad(100, 1900, healthBlockW*player.health, 40, player.health, 1);
+                drawQuad(0, 0, worldWidth, worldHeight, 3, 2);
             glDisable(GL_TEXTURE_2D);
         glPopMatrix();
 
         glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
-
 
         for(Platform p : platforms){
             p.platformUpdate();
@@ -123,6 +115,7 @@ void Scene::sceneUpdate(){
         if(playerAlive){
             player.playerUpdate();
             if(player.pcY < -1000){
+                player.health = 0;
                 playerAlive = false;
             }
         }
@@ -137,9 +130,23 @@ void Scene::sceneUpdate(){
             displayPlayer();
         }
 
-        displayEnemies();
         displayMovingPlatforms();
         displayPlatforms();
+
+        //health bar
+        glLoadIdentity();
+        glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                glBindTexture(GL_TEXTURE_2D, health);
+                glColor3f(0, 1, 0);
+                drawQuad(100, 1900, healthBlockW*player.health, 80, player.health, 1);
+            glDisable(GL_TEXTURE_2D);
+        glPopMatrix();
+
+        glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
+
+        displayEnemies();
         displayFeathers();
 
         //dead
@@ -161,8 +168,8 @@ void Scene::sceneUpdate(){
 }
 
 void Scene::displayPlayer(){
-    if(walkTexCounter > 16){
-        walkTexCounter = 0;
+    if(playerWalkTexCounter > 16){
+        playerWalkTexCounter = 0;
     }
     if(player.grounded){
         jumpTexCounter = 0;
@@ -185,9 +192,8 @@ void Scene::displayPlayer(){
             }
             else{
                 if(player.movingRight || player.movingLeft){
-                    glBindTexture(GL_TEXTURE_2D, playerWalk[walkTexCounter]);
+                    glBindTexture(GL_TEXTURE_2D, playerWalk[playerWalkTexCounter]);
                 }
-
             }
             glTranslatef(player.pcX, player.pcY, 0);
             glColor3f(1, 0, 0);
@@ -219,7 +225,7 @@ void Scene::displayPlayer(){
 
     texChangeTimer += deltaTime;
     if(texChangeTimer > texTimer){
-        walkTexCounter++;
+        playerWalkTexCounter++;
         if(jumpTexCounter < 5){
             jumpTexCounter++;
         }
@@ -228,15 +234,38 @@ void Scene::displayPlayer(){
 }
 
 void Scene::displayEnemies(){
+    if(enemyWalkTexCounter > 15){
+        enemyWalkTexCounter = 0;
+    }
+
+    sc = enemyWalkTexCounter;
+    if(sc == 2 || sc == 3 || sc == 4 || sc == 11 || sc == 12 || sc == 13){
+        squashEnemy = true;
+    }
+    else{
+        squashEnemy = false;
+    }
     //Enemy
     for(Enemy* e : enemies){
         glPushMatrix();
             glEnable(GL_TEXTURE_2D);
                 glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                glBindTexture(GL_TEXTURE_2D, playerTex);
+                glBindTexture(GL_TEXTURE_2D, enemyWalk[enemyWalkTexCounter]);
                 glTranslatef(e->eX, e->eY, 0);
                 glColor3f(0.5, 0, 1);
-                drawQuad(0, 0, e->enemyWidth, e->enemyHeight, 1, 1);
+                if(e->facingRight && squashEnemy){
+                    drawQuad(0, 0, e->enemyWidth-20, e->enemyHeight, -1, 1);
+                }
+                else if(e->facingRight){
+                    drawQuad(0, 0, e->enemyWidth, e->enemyHeight, -1, 1);
+                }
+                else if(!e->facingRight && squashEnemy){
+                    drawQuad(0, 0, e->enemyWidth-20, e->enemyHeight, 1, 1);
+                }
+                else if(!e->facingRight){
+                    drawQuad(0, 0, e->enemyWidth, e->enemyHeight, 1, 1);
+                }
+
             glDisable(GL_TEXTURE_2D);
             glLineWidth(15);
             glColor3f(1, e->colourFlag, e->colourFlag);
@@ -244,6 +273,12 @@ void Scene::displayEnemies(){
                 drawBox(0, 0, e->enemyWidth, e->enemyHeight);
             }
         glPopMatrix();
+    }
+
+    texChangeTimer += deltaTime;
+    if(texChangeTimer > texTimer){
+        enemyWalkTexCounter++;
+        texChangeTimer = 0;
     }
 }
 
@@ -371,10 +406,10 @@ void Scene::sceneColliderLogic(int p){
 }
 
 void Scene::loadMovingPlatforms(){
-    movingPlatforms.emplace_back(new Platform(400, 0, 3*blockDim, blockDim, 3, 1, true, 800, 0.5));
-    movingPlatforms.emplace_back(new Platform(3300, 850, 5*blockDim, blockDim, 5, 1, true, 1000, 0.6));
-    movingPlatforms.emplace_back(new Platform(300, 1400, 4*blockDim, blockDim, 4, 1, true, 1000, 0.6));
-    movingPlatforms.emplace_back(new Platform(3000, 2000, 2*blockDim, blockDim, 2, 1, true, 500, 0.3));
+    movingPlatforms.emplace_back(new Platform(400, 0, 2*blockWidth, blockHeight, 2, 1, true, 800, 0.5));
+    movingPlatforms.emplace_back(new Platform(3500, 850, 3*blockWidth, blockHeight, 3, 1, true, 800, 0.6));
+    movingPlatforms.emplace_back(new Platform(300, 1400, 2*blockWidth, blockHeight, 2, 1, true, 1000, 0.6));
+    movingPlatforms.emplace_back(new Platform(3000, 2000, blockWidth, blockHeight, 1, 1, true, 500, 0.3));
 }
 
 void Scene::movingSceneCollisions(){

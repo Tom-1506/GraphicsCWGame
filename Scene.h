@@ -21,6 +21,8 @@ class Scene{
         std::vector<GLuint> playerWalk;
         std::vector<GLuint> playerJump;
 
+        std::vector<GLuint> enemyWalk;
+
         bool started;
 
         void sceneInit();

@@ -5,8 +5,8 @@ float enemySpeed = 0.5;
 Enemy::Enemy(GLfloat x, GLfloat y){
     eX = x;
     eY = y;
-    enemyWidth = 184;
-    enemyHeight = 228;
+    enemyWidth = 240;
+    enemyHeight = 380;
     eVelocityX;
     eVelocityY;
     gravity = -0.004;

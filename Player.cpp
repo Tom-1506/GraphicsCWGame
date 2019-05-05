@@ -77,22 +77,6 @@ void Player::playerUpdate(){
         falling = false;
     }
 
-    /*if(idle){
-        std::cout << "idle" << std::endl;
-    }
-    else if(jumping){
-        std::cout << "jumping" << std::endl;
-    }
-    else if(falling){
-        std::cout << "falling" << std::endl;
-    }
-    else if(movingRight){
-        std::cout << "moving right" << std::endl;
-    }
-    else if(movingLeft){
-        std::cout << "moving left" << std::endl;
-    }*/
-
     if(hit){
         timeCount += deltaTime;
 
