@@ -7,8 +7,8 @@ Enemy::Enemy(GLfloat x, GLfloat y){
     eY = y;
     enemyWidth = 240;
     enemyHeight = 380;
-    eVelocityX;
-    eVelocityY;
+    eVelocityX = 0;
+    eVelocityY = 0;
     gravity = -0.004;
     enemyMaxX = eX + enemyWidth;
     enemyMinX = eX;
@@ -22,13 +22,11 @@ void Enemy::enemyInit(){
 }
 
 void Enemy::enemyUpdate(){
-    //std::cout << "vel: " << eVelocityY << std::endl;
     moveUpdate();
     enemyColliderUpdate();
 }
 
 void Enemy::moveUpdate(){
-    //std::cout << eX << " : " << eY << " : " << enemySpeed << " : " << eVelocityY << " : " << deltaTime << std::endl;
     if(facingRight){
         eVelocityX = enemySpeed;
 

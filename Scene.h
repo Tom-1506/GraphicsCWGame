@@ -33,6 +33,9 @@ class Scene{
         void movingSceneColliderLogic(int p);
 
         void loadButtons();
+        void buttonCollision(int x, int y);
+
+        void displayMenu();
 
         void displayPlayer();
 

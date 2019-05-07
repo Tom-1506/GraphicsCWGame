@@ -7,7 +7,7 @@ float pcSpeed = 1; // make 1 after testing
 float pcJumpHeight;
 
 int timeCount;
-int timer = 2000;
+int timer = 750;
 
 Player::Player(GLfloat x, GLfloat y){
     pcX = x;

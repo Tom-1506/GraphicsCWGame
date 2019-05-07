@@ -9,7 +9,6 @@ class Button {
         Button(float posX, float posY, float w, float h, int texRepeatX, int texRepeatY);
 
         void buttonUpdate();
-        void buttonDisplay();
 
         GLfloat bX;
         GLfloat bY;

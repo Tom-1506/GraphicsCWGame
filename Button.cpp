@@ -16,7 +16,3 @@ Button::Button(float posX, float posY, float w, float h, int texRepeatX, int tex
 
 void Button::buttonUpdate(){
 }
-
-void Button::buttonDisplay(){
-
-}

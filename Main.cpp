@@ -64,7 +64,7 @@ void mouseFunc(int button, int state, int x, int y){
     switch (button)
     {
         case GLUT_LEFT_BUTTON:
-            std::cout << x << ", " << viewHeight - y << std::endl;
+            scene.buttonCollision(x, viewHeight - y);
             break;
         default:
             break;
