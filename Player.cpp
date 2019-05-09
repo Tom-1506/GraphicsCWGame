@@ -14,8 +14,8 @@ Player::Player(GLfloat x, GLfloat y){
     pcY = y;
     pcWidth = 163; //pc width
     pcHeight = 306; //pc height
-    pcVelocityX; //pc movement speed
-    pcVelocityY;
+    pcVelocityX = 0; //pc movement speed
+    pcVelocityY = 0;
     gravity = -0.004; //world gravity
     playerMaxX = pcX + pcWidth;
     playerMinX = pcX;
@@ -37,8 +37,6 @@ void Player::playerInit(){
     glutKeyboardUpFunc(keyUp);
     glutSpecialFunc(keySpecialPressed);
     glutSpecialUpFunc(keySpecialUp);
-
-    playerTex = loadPNG((char*)"textures/enemy.png");
 }
 
 void Player::playerUpdate(){

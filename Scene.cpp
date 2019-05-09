@@ -2,11 +2,14 @@
 
 GLuint title;
 GLuint play;
+GLuint restart;
 GLuint quit;
 GLuint playerTex; //player texture
 GLuint ground; //ground texture
 GLuint feather; //feather texture
+GLuint goldFeather;
 GLuint background; //background texture
+GLuint message;
 GLuint health;
 GLuint died;
 
@@ -27,18 +30,14 @@ int worldWidth = 7680;
 int worldHeight = 4320;
 int blockWidth = 256;
 int blockHeight = 128;
-int healthBlockW = 320;
+int healthBlockW = 270;
 
 bool playerAlive = true;
 Player player = Player(1200, 1200);
 
-Platform platforms[] = {Platform(3200, 0, 3*blockWidth, blockHeight, 3, 1, false, 0, 0),
-                        Platform(1028, 768, 3*blockWidth, blockHeight, 3, 1, false, 0, 0),
-                        Platform(2000, blockHeight, 4*blockWidth, blockHeight, 4, 1, false, 0, 0),
-                        Platform(3100, 800, blockWidth, blockHeight, 1, 1, false, 0, 0),
-                        Platform(2200, 1400, 3*blockWidth, blockHeight, 3, 1, false, 0, 0),
-                        Platform(4500, 256, 5*blockWidth, blockHeight, 5, 1, false, 0, 0),
-                        Platform(5840, 700, 3*blockWidth, blockHeight, 3, 1, false, 0, 0)};
+Platform platforms[] = {Platform(1028, 768, 9*blockWidth, blockHeight, 9, 1, false, 0, 0),
+                        Platform(-1624, 1700, 6*blockWidth, blockHeight, 6, 1, false, 0, 0),
+                        Platform(-1496, 1828, 2*blockWidth, blockHeight, 2, 1, false, 0, 0)};
 int platformsSize = (sizeof(platforms)/sizeof(*platforms));
 
 float distTop;
@@ -54,6 +53,12 @@ Scene::Scene(){
 
 void Scene::sceneInit(){
     started = false;
+    player.numFeathers = 0;
+    player.health = 5;
+    player.pcVelocityX = 0;
+    player.pcVelocityY = 0;
+    player.pcX = 1200;
+    player.pcY = 1200;
     loadMovingPlatforms();
     player.playerInit();
     loadFeathers();
@@ -85,8 +90,17 @@ void Scene::sceneInit(){
     ground = loadPNG((char*)"textures/blocks.png");
     title = loadPNG((char*)"textures/title.png");
     play = loadPNG((char*)"textures/play-button.png");
+    restart = loadPNG((char*)"textures/restart-button.png");
     quit = loadPNG((char*)"textures/quit-button.png");
     feather = loadPNG((char*)"textures/feather.png");
+    goldFeather = loadPNG((char*)"textures/gold-feather.png");
+    for(int i = 0; i < 6; i++){
+        std::string fpath = "textures/numbers/" + std::to_string(i) + ".png";
+        char cstr[fpath.size() + 1];
+        strcpy(cstr, fpath.c_str());
+        featherCounter.emplace_back(loadPNG(cstr));
+    }
+    message = loadPNG((char*)"textures/message.png");
     background = loadPNG((char*)"textures/sky-backdrop.png");
     health = loadPNG((char*) "textures/health.png");
     died = loadPNG((char*) "textures/you-died.png");
@@ -105,6 +119,18 @@ void Scene::sceneUpdate(){
         glPopMatrix();
 
         glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
+
+        //Objective message
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                glBindTexture(GL_TEXTURE_2D, message);
+                glColor3f(1, 0, 1);
+                drawQuad(0, 1000, 1040, 712, 1, 1);
+            glDisable(GL_TEXTURE_2D);
+        glPopMatrix();
 
         for(Platform p : platforms){
             p.platformUpdate();
@@ -138,6 +164,8 @@ void Scene::sceneUpdate(){
 
         displayMovingPlatforms();
         displayPlatforms();
+        displayEnemies();
+        displayFeathers();
 
         //health bar
         glLoadIdentity();
@@ -146,7 +174,7 @@ void Scene::sceneUpdate(){
                 glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
                 glBindTexture(GL_TEXTURE_2D, health);
                 glColor3f(0, 1, 0);
-                drawQuad(100, 1900, healthBlockW*player.health, 80, player.health, 1);
+                drawQuad(200, 1900, healthBlockW*player.health, 50, player.health, 1);
             glDisable(GL_TEXTURE_2D);
         glPopMatrix();
 
@@ -159,15 +187,23 @@ void Scene::sceneUpdate(){
                     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
                     glBindTexture(GL_TEXTURE_2D, feather);
                     glColor3f(1, 0, 1);
-                    drawQuad(150, 1675, 128, 128, 1, 1);
+                    drawQuad(100, 1850, 148, 148, 1, 1);
+                glDisable(GL_TEXTURE_2D);
+            glPopMatrix();
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glPushMatrix();
+                glEnable(GL_TEXTURE_2D);
+                    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                    glBindTexture(GL_TEXTURE_2D, featherCounter[player.numFeathers]);
+                    glColor3f(1, 0, 1);
+                    drawQuad(100, 1875, 97, 129, 1, 1);
                 glDisable(GL_TEXTURE_2D);
             glPopMatrix();
         }
 
         glTranslatef(-player.pcX+1740, -player.pcY+952, 0);
-
-        displayEnemies();
-        displayFeathers();
 
         //dead
         if(!playerAlive){
@@ -177,21 +213,39 @@ void Scene::sceneUpdate(){
                     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
                     glBindTexture(GL_TEXTURE_2D, died);
                     glColor3f(0, 1, 0);
-                    drawQuad(1100, 900, 1408, 364, 1, 1);
+                    drawQuad(1100, 1200, 1408, 364, 1, 1);
                 glDisable(GL_TEXTURE_2D);
             glPopMatrix();
 
-            Button* b = buttons[1];
-
-            glPushMatrix();
-                glEnable(GL_TEXTURE_2D);
-                    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                    glBindTexture(GL_TEXTURE_2D, quit);
-                    glColor3f(0, 1, 0);
-                    drawQuad(b->bX, b->bY, b->buttonWidth, b->buttonHeight, b->buttonTexX, b->buttonTexY);
-                glDisable(GL_TEXTURE_2D);
-            glPopMatrix();
+            for(Button* b : endButtons){
+                glPushMatrix();
+                    glEnable(GL_TEXTURE_2D);
+                        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                        if(b->bY == 800){
+                            glBindTexture(GL_TEXTURE_2D, restart);
+                        }
+                        else{
+                            glBindTexture(GL_TEXTURE_2D, quit);
+                        }
+                        glColor3f(0, 1, 0);
+                        drawQuad(b->bX, b->bY, b->buttonWidth, b->buttonHeight, b->buttonTexX, b->buttonTexY);
+                    glDisable(GL_TEXTURE_2D);
+                glPopMatrix();
+            }
         }
+    }
+    else if(won){
+        //Won menu
+        glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                glBindTexture(GL_TEXTURE_2D, background);
+                glColor3f(0, 1, 0);
+                drawQuad(0, 0, worldWidth, worldHeight, 3, 2);
+            glDisable(GL_TEXTURE_2D);
+        glPopMatrix();
+
+        displayWinMenu();
     }
     else{
         //menu background
@@ -209,8 +263,12 @@ void Scene::sceneUpdate(){
 }
 
 void Scene::loadButtons(){
-    buttons.emplace_back(new Button(1450, 800, 700, 200, 1, 1));
-    buttons.emplace_back(new Button(1450, 450, 700, 200, 1, 1));
+    startButtons.clear();
+    endButtons.clear();
+    startButtons.emplace_back(new Button(1450, 800, 700, 200, 1, 1));
+    startButtons.emplace_back(new Button(1450, 450, 700, 200, 1, 1));
+    endButtons.emplace_back(new Button(1450, 800, 700, 200, 1, 1));
+    endButtons.emplace_back(new Button(1450, 450, 700, 200, 1, 1));
 }
 
 void Scene::displayMenu(){
@@ -226,7 +284,7 @@ void Scene::displayMenu(){
         glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 
-    for(Button* b : buttons){
+    for(Button* b : startButtons){
         glPushMatrix();
             glEnable(GL_TEXTURE_2D);
                 glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -243,10 +301,40 @@ void Scene::displayMenu(){
     }
 }
 
+void Scene::displayWinMenu(){
+    glLoadIdentity();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glPushMatrix();
+        glEnable(GL_TEXTURE_2D);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBindTexture(GL_TEXTURE_2D, title);
+            glColor3f(0, 1, 0);
+            drawQuad(900, 1200, 1800, 800, 1, 1);
+        glDisable(GL_TEXTURE_2D);
+    glPopMatrix();
+
+    for(Button* b : endButtons){
+        glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                if(b->bY == 800){
+                    glBindTexture(GL_TEXTURE_2D, restart);
+                }
+                else{
+                    glBindTexture(GL_TEXTURE_2D, quit);
+                }
+                glColor3f(0, 1, 0);
+                drawQuad(b->bX, b->bY, b->buttonWidth, b->buttonHeight, b->buttonTexX, b->buttonTexY);
+            glDisable(GL_TEXTURE_2D);
+        glPopMatrix();
+    }
+}
+
 void Scene::buttonCollision(int x, int y){
-    if(!started || !playerAlive){
-        Button* play = buttons[0];
-        Button* quit = buttons[1];
+    if(!started){
+        Button* play = startButtons[0];
+        Button* quit = startButtons[1];
         if(x > play->buttonMinX &&
            x < play->buttonMaxX &&
            y > play->buttonMinY &&
@@ -260,7 +348,26 @@ void Scene::buttonCollision(int x, int y){
             exit(0);
         }
     }
-
+    else if(won || !playerAlive){
+        Button* restart = endButtons[0];
+        Button* quit = endButtons[1];
+        if(x > restart->buttonMinX &&
+           x < restart->buttonMaxX &&
+           y > restart->buttonMinY &&
+           y < restart->buttonMaxY){
+            std::cout << "here" << std::endl;
+            sceneInit();
+            started = true;
+            playerAlive = true;
+            won = false;
+        }
+        else if(x > quit->buttonMinX &&
+                x < quit->buttonMaxX &&
+                y > quit->buttonMinY &&
+                y < quit->buttonMaxY){
+            exit(0);
+        }
+    }
 }
 
 void Scene::displayPlayer(){
@@ -419,20 +526,25 @@ void Scene::displayPlatforms(){
 }
 
 void Scene::displayFeathers(){
-    for(Feather f : feathers){
+    for(int i = 0; i < feathers.size(); i++){
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glPushMatrix();
             glEnable(GL_TEXTURE_2D);
                 glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                glBindTexture(GL_TEXTURE_2D, feather);
+                if(i == 0){
+                    glBindTexture(GL_TEXTURE_2D, goldFeather);
+                }
+                else{
+                    glBindTexture(GL_TEXTURE_2D, feather);
+                }
                 glColor3f(1, 0, 1);
-                drawQuad(f.fX, f.fY, f.fWidth, f.fHeight, 1, 1);
+                drawQuad(feathers[i].fX, feathers[i].fY, feathers[i].fWidth, feathers[i].fHeight, 1, 1);
             glDisable(GL_TEXTURE_2D);
             glLineWidth(15);
             glColor3f(1, player.colourFlag, player.colourFlag);
             if(drawCollisionBoxes){
-                drawBox(f.fX, f.fY, f.fWidth, f.fHeight);
+                drawBox(feathers[i].fX, feathers[i].fY, feathers[i].fWidth, feathers[i].fHeight);
             }
         glPopMatrix();
     }
@@ -502,10 +614,9 @@ void Scene::sceneColliderLogic(int p){
 }
 
 void Scene::loadMovingPlatforms(){
+    movingPlatforms.clear();
     movingPlatforms.emplace_back(new Platform(400, 0, 2*blockWidth, blockHeight, 2, 1, true, 800, 0.5));
-    movingPlatforms.emplace_back(new Platform(3500, 850, 3*blockWidth, blockHeight, 3, 1, true, 800, 0.6));
-    movingPlatforms.emplace_back(new Platform(300, 1400, 2*blockWidth, blockHeight, 2, 1, true, 1000, 0.6));
-    movingPlatforms.emplace_back(new Platform(3000, 2000, blockWidth, blockHeight, 1, 1, true, 500, 0.3));
+
 }
 
 void Scene::movingSceneCollisions(){
@@ -579,7 +690,13 @@ void Scene::movingSceneColliderLogic(int p){
 }
 
 void Scene::loadFeathers(){
-    feathers.emplace_back(Feather(6200, 1000));
+    feathers.clear();
+    feathers.emplace_back(Feather(-1300, 2050)); //gold feather
+    feathers.emplace_back(Feather(1600, 1100));
+    feathers.emplace_back(Feather(2000, 1100));
+    feathers.emplace_back(Feather(2400, 1100));
+    feathers.emplace_back(Feather(2800, 1100));
+    feathers.emplace_back(Feather(3200, 1100));
 }
 
 void Scene::featherCollision(){
@@ -598,15 +715,21 @@ void Scene::featherCollision(){
 }
 
 void Scene::featherColliderLogic(int f){
-    player.colourFlag = 0;
-    player.featherGet();
-    feathers.erase(feathers.begin()+f);
+    if(f == 0){ //gold feather
+        won = true;
+        started = false;
+        feathers.erase(feathers.begin()+f);
+    }
+    else{
+        player.colourFlag = 0;
+        player.featherGet();
+        feathers.erase(feathers.begin()+f);
+    }
 }
 
 void Scene::loadEnemies(){
-    enemies.emplace_back(new Enemy(2100, 300));
-    enemies.emplace_back(new Enemy(2300, 1600));
-    enemies.emplace_back(new Enemy(4400, 1000));
+    enemies.clear();
+    enemies.emplace_back(new Enemy(-900, 2050));
 }
 
 void Scene::enemySceneCollisions(){

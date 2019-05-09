@@ -14,9 +14,11 @@ class Scene{
         Scene();
 
         std::vector<Feather> feathers;
+        std::vector<GLuint> featherCounter;
         std::vector<Enemy*> enemies;
         std::vector<Platform*> movingPlatforms;
-        std::vector<Button*> buttons;
+        std::vector<Button*> startButtons;
+        std::vector<Button*> endButtons;
 
         std::vector<GLuint> playerWalk;
         std::vector<GLuint> playerJump;
@@ -24,6 +26,7 @@ class Scene{
         std::vector<GLuint> enemyWalk;
 
         bool started;
+        bool won;
 
         void sceneInit();
         void sceneUpdate();
@@ -36,6 +39,7 @@ class Scene{
         void buttonCollision(int x, int y);
 
         void displayMenu();
+        void displayWinMenu();
 
         void displayPlayer();
 

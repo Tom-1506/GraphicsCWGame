@@ -16,8 +16,6 @@ class Player{
         void featherGet();
         bool damaged();
 
-        GLuint playerTex;
-
         int numFeathers;
         float colourFlag;
         bool grounded;
