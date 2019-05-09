@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 GLuint title;
+GLuint youWin;
 GLuint play;
 GLuint restart;
 GLuint quit;
@@ -89,6 +90,7 @@ void Scene::sceneInit(){
     }
     ground = loadPNG((char*)"textures/blocks.png");
     title = loadPNG((char*)"textures/title.png");
+    youWin = loadPNG((char*)"textures/you-win.png");
     play = loadPNG((char*)"textures/play-button.png");
     restart = loadPNG((char*)"textures/restart-button.png");
     quit = loadPNG((char*)"textures/quit-button.png");
@@ -280,7 +282,7 @@ void Scene::displayMenu(){
             glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
             glBindTexture(GL_TEXTURE_2D, title);
             glColor3f(0, 1, 0);
-            drawQuad(900, 1200, 1800, 800, 1, 1);
+            drawQuad(950, 1200, 1800, 800, 1, 1);
         glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 
@@ -308,9 +310,9 @@ void Scene::displayWinMenu(){
     glPushMatrix();
         glEnable(GL_TEXTURE_2D);
             glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            glBindTexture(GL_TEXTURE_2D, title);
+            glBindTexture(GL_TEXTURE_2D, youWin);
             glColor3f(0, 1, 0);
-            drawQuad(900, 1200, 1800, 800, 1, 1);
+            drawQuad(875, 1200, 1800, 800, 1, 1);
         glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 
@@ -355,7 +357,6 @@ void Scene::buttonCollision(int x, int y){
            x < restart->buttonMaxX &&
            y > restart->buttonMinY &&
            y < restart->buttonMaxY){
-            std::cout << "here" << std::endl;
             sceneInit();
             started = true;
             playerAlive = true;
