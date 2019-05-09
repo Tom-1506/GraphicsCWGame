@@ -123,6 +123,9 @@ void Player::controlUpdate(){
 void Player::featherGet(){
     numFeathers++;
     pcJumpHeight = 2+(0.2*numFeathers);
+    if(health < 5){
+        health++;
+    }
 }
 
 bool Player::damaged(){

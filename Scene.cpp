@@ -1,20 +1,19 @@
 #include "Scene.h"
 
-GLuint title;
-GLuint youWin;
-GLuint play;
-GLuint restart;
-GLuint quit;
+GLuint title; //title texture
+GLuint youWin; //win screen texture
+GLuint play; //play button texture
+GLuint restart; //restart button texture
+GLuint quit; //quit button texture
 GLuint playerTex; //player texture
 GLuint ground; //ground texture
 GLuint feather; //feather texture
-GLuint goldFeather;
+GLuint goldFeather; //winning feather texture
 GLuint background; //background texture
-GLuint message;
-GLuint health;
-GLuint died;
-
-int featherCountDis;
+GLuint message; //objective message texture
+GLuint allCollected; //all feathers collected message
+GLuint health; //health bar texture
+GLuint died; //you died texture
 
 float enemyHitSpeedY = 1;
 float enemyHitSpeedX = 1;
@@ -36,9 +35,34 @@ int healthBlockW = 270;
 bool playerAlive = true;
 Player player = Player(1200, 1200);
 
-Platform platforms[] = {Platform(1028, 768, 9*blockWidth, blockHeight, 9, 1, false, 0, 0),
-                        Platform(-1624, 1700, 6*blockWidth, blockHeight, 6, 1, false, 0, 0),
-                        Platform(-1496, 1828, 2*blockWidth, blockHeight, 2, 1, false, 0, 0)};
+Platform platforms[] = {Platform(-1624, 1700, 6*blockWidth, blockHeight, 6, 1, false, 0, 0), //gold feather platforms
+                        Platform(-1496, 1828, 2*blockWidth, blockHeight, 2, 1, false, 0, 0),
+                        Platform(1028, 768, 3*blockWidth, blockHeight, 3, 1, false, 0, 0), //start platform
+                        Platform(2000, 1200, 4*blockWidth, blockHeight, 4, 1, false, 0, 0), //area 1
+                        Platform(3500, 1600, blockWidth, blockHeight, 1, 1, false, 0, 0),
+                        Platform(3000, 2100, blockWidth, blockHeight, 1, 1, false, 0, 0),
+                        Platform(5220, 2100, 2*blockWidth, blockHeight, 2, 1, false, 0, 0),
+                        Platform(6000, 2700, blockWidth, blockHeight, 1, 1, false, 0, 0), //area 2 has 1 feather
+                        Platform(8000, 1500, 3*blockWidth, blockHeight, 3, 1, false, 0, 0),
+                        Platform(8800, 2100, 4*blockWidth, blockHeight, 4, 1, false, 0, 0),
+                        Platform(10950, 2100, 2*blockWidth, blockHeight, 2, 1, false, 0, 0),
+                        Platform(13000, 3700, 7*blockWidth, blockHeight, 7, 1, false, 0, 0), //area 3 has 2 feathers
+                        Platform(13768, 4400, blockWidth, blockHeight, 1, 1, false, 0, 0),
+                        Platform(13000, 5100, 2*blockWidth, blockHeight, 2, 1, false, 0, 0),
+                        Platform(14280, 5100, 2*blockWidth, blockHeight, 2, 1, false, 0, 0),
+                        Platform(13640, 5830, 2*blockWidth, blockHeight, 2, 1, false, 0, 0),
+                        Platform(17700, 6550, 3*blockWidth, blockHeight, 3, 1, false, 0, 0), //area 4 has 3 feathers
+                        Platform(18340, 6422, blockWidth, blockHeight, 1, 1, false, 0, 0),
+                        Platform(18468, 6294, blockWidth, blockHeight, 1, 1, false, 0, 0),
+                        Platform(18596, 6166, blockWidth, blockHeight, 1, 1, false, 0, 0),
+                        Platform(18724, 6038, 7*blockWidth, blockHeight, 7, 1, false, 0, 0),
+                        Platform(20388, 6166, blockWidth, blockHeight, 1, 1, false, 0, 0),
+                        Platform(20516, 6294, blockWidth, blockHeight, 1, 1, false, 0, 0),
+                        Platform(20644, 6422, blockWidth, blockHeight, 1, 1, false, 0, 0),
+                        Platform(20772, 6550, 2*blockWidth, blockHeight, 2, 1, false, 0, 0),
+                        Platform(20644, 7500, blockWidth, blockHeight, 1, 1, false, 0, 0), //area 5 has 4 feathers
+                        Platform(19500, 10340, 2*blockWidth, blockHeight, 2, 1, false, 0, 0)
+                       };
 int platformsSize = (sizeof(platforms)/sizeof(*platforms));
 
 float distTop;
@@ -53,12 +77,12 @@ Scene::Scene(){
 }
 
 void Scene::sceneInit(){
-    started = false;
+    started = true;
     player.numFeathers = 0;
     player.health = 5;
     player.pcVelocityX = 0;
     player.pcVelocityY = 0;
-    player.pcX = 1200;
+    player.pcX = 1200; // reset 1200 1200
     player.pcY = 1200;
     loadMovingPlatforms();
     player.playerInit();
@@ -103,6 +127,7 @@ void Scene::sceneInit(){
         featherCounter.emplace_back(loadPNG(cstr));
     }
     message = loadPNG((char*)"textures/message.png");
+    allCollected = loadPNG((char*)"textures/all-feathers-collected.png");
     background = loadPNG((char*)"textures/sky-backdrop.png");
     health = loadPNG((char*) "textures/health.png");
     died = loadPNG((char*) "textures/you-died.png");
@@ -133,6 +158,21 @@ void Scene::sceneUpdate(){
                 drawQuad(0, 1000, 1040, 712, 1, 1);
             glDisable(GL_TEXTURE_2D);
         glPopMatrix();
+
+        if(player.numFeathers == 5){
+            //All feathers collected message
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glPushMatrix();
+                glEnable(GL_TEXTURE_2D);
+                    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                    glBindTexture(GL_TEXTURE_2D, allCollected);
+                    glColor3f(1, 0, 1);
+                    drawQuad(20500, 10900, 900, 400, 1, 1);
+                glDisable(GL_TEXTURE_2D);
+            glPopMatrix();
+        }
+
 
         for(Platform p : platforms){
             p.platformUpdate();
@@ -616,7 +656,15 @@ void Scene::sceneColliderLogic(int p){
 
 void Scene::loadMovingPlatforms(){
     movingPlatforms.clear();
-    movingPlatforms.emplace_back(new Platform(400, 0, 2*blockWidth, blockHeight, 2, 1, true, 800, 0.5));
+    movingPlatforms.emplace_back(new Platform(3500, 2500, 2*blockWidth, blockHeight, 2, 1, true, 1000, 0.5));
+    movingPlatforms.emplace_back(new Platform(6600, 2100, 2*blockWidth, blockHeight, 2, 1, true, 700, 0.5));
+    movingPlatforms.emplace_back(new Platform(11600, 2800, 2*blockWidth, blockHeight, 2, 1, true, 400, 0.3));
+    movingPlatforms.emplace_back(new Platform(11000, 3550, 2*blockWidth, blockHeight, 2, 1, true, 400, 0.4));
+    movingPlatforms.emplace_back(new Platform(15400, 5830, 2*blockWidth, blockHeight, 2, 1, true, 1200, 0.5));
+    movingPlatforms.emplace_back(new Platform(19000, 7800, 2*blockWidth, blockHeight, 2, 1, true, 500, 0.5));
+    movingPlatforms.emplace_back(new Platform(18300, 8600, blockWidth, blockHeight, 1, 1, true, 300, 0.3));
+    movingPlatforms.emplace_back(new Platform(20500, 8600, blockWidth, blockHeight, 1, 1, true, 300, 0.4));
+    movingPlatforms.emplace_back(new Platform(19000, 9300, 3*blockWidth, blockHeight, 3, 1, true, 600, 0.5));
 
 }
 
@@ -693,11 +741,17 @@ void Scene::movingSceneColliderLogic(int p){
 void Scene::loadFeathers(){
     feathers.clear();
     feathers.emplace_back(Feather(-1300, 2050)); //gold feather
-    feathers.emplace_back(Feather(1600, 1100));
-    feathers.emplace_back(Feather(2000, 1100));
-    feathers.emplace_back(Feather(2400, 1100));
-    feathers.emplace_back(Feather(2800, 1100));
-    feathers.emplace_back(Feather(3200, 1100));
+    /*feathers.emplace_back(Feather(1500, 1050)); //super feather for testing
+    feathers.emplace_back(Feather(1500, 1050));
+    feathers.emplace_back(Feather(1500, 1050));
+    feathers.emplace_back(Feather(1500, 1050));
+    feathers.emplace_back(Feather(1500, 1050));*/
+
+    feathers.emplace_back(Feather(5420, 2300)); //feather 1
+    feathers.emplace_back(Feather(11150, 2300)); //feather 2
+    feathers.emplace_back(Feather(13840, 6030)); //feather 3
+    feathers.emplace_back(Feather(20972, 6750)); //feather 4
+    feathers.emplace_back(Feather(19700, 10540)); //feather 5
 }
 
 void Scene::featherCollision(){
@@ -730,7 +784,15 @@ void Scene::featherColliderLogic(int f){
 
 void Scene::loadEnemies(){
     enemies.clear();
-    enemies.emplace_back(new Enemy(-900, 2050));
+    enemies.emplace_back(new Enemy(2100, 1328));
+    enemies.emplace_back(new Enemy(8100, 1528));
+    enemies.emplace_back(new Enemy(9200, 2228));
+    enemies.emplace_back(new Enemy(12850, 3828));
+    enemies.emplace_back(new Enemy(14500, 3828));
+    enemies.emplace_back(new Enemy(12800, 5228));
+    enemies.emplace_back(new Enemy(14400, 5228));
+    enemies.emplace_back(new Enemy(18900, 6200));
+    enemies.emplace_back(new Enemy(19700, 6200));
 }
 
 void Scene::enemySceneCollisions(){
