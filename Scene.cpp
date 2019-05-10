@@ -13,6 +13,7 @@ GLuint background; //background texture
 GLuint message; //objective message texture
 GLuint allCollected; //all feathers collected message
 GLuint health; //health bar texture
+GLuint hit; //hit texture
 GLuint died; //you died texture
 
 float enemyHitSpeedY = 1;
@@ -130,6 +131,7 @@ void Scene::sceneInit(){
     allCollected = loadPNG((char*)"textures/all-feathers-collected.png");
     background = loadPNG((char*)"textures/sky-backdrop.png");
     health = loadPNG((char*) "textures/health.png");
+    hit = loadPNG((char*)"textures/hit.png");
     died = loadPNG((char*) "textures/you-died.png");
 }
 
@@ -475,6 +477,17 @@ void Scene::displayPlayer(){
         }
         texChangeTimer = 0;
     }
+
+    if(player.hit){
+        glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                glBindTexture(GL_TEXTURE_2D, hit);
+                glColor3f(0, 1, 0);
+                drawQuad(player.pcX+20, player.pcY, player.pcWidth+60, player.pcHeight, 1, 1);
+            glDisable(GL_TEXTURE_2D);
+        glPopMatrix();
+    }
 }
 
 void Scene::displayEnemies(){
@@ -661,6 +674,7 @@ void Scene::loadMovingPlatforms(){
     movingPlatforms.emplace_back(new Platform(11600, 2800, 2*blockWidth, blockHeight, 2, 1, true, 400, 0.3));
     movingPlatforms.emplace_back(new Platform(11000, 3550, 2*blockWidth, blockHeight, 2, 1, true, 400, 0.4));
     movingPlatforms.emplace_back(new Platform(15400, 5830, 2*blockWidth, blockHeight, 2, 1, true, 1200, 0.5));
+    movingPlatforms.emplace_back(new Platform(15400, 6800, 2*blockWidth, blockHeight, 2, 1, true, 1200, 0.5));
     movingPlatforms.emplace_back(new Platform(19000, 7800, 2*blockWidth, blockHeight, 2, 1, true, 500, 0.5));
     movingPlatforms.emplace_back(new Platform(18300, 8600, blockWidth, blockHeight, 1, 1, true, 300, 0.3));
     movingPlatforms.emplace_back(new Platform(20500, 8600, blockWidth, blockHeight, 1, 1, true, 300, 0.4));
@@ -787,9 +801,9 @@ void Scene::loadEnemies(){
     enemies.emplace_back(new Enemy(2100, 1328));
     enemies.emplace_back(new Enemy(8100, 1528));
     enemies.emplace_back(new Enemy(9200, 2228));
-    enemies.emplace_back(new Enemy(12850, 3828));
-    enemies.emplace_back(new Enemy(14500, 3828));
-    enemies.emplace_back(new Enemy(12800, 5228));
+    enemies.emplace_back(new Enemy(13000, 3828));
+    enemies.emplace_back(new Enemy(14400, 3828));
+    enemies.emplace_back(new Enemy(13000, 5228));
     enemies.emplace_back(new Enemy(14400, 5228));
     enemies.emplace_back(new Enemy(18900, 6200));
     enemies.emplace_back(new Enemy(19700, 6200));
